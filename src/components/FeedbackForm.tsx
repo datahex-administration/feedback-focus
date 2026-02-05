@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -23,8 +20,13 @@ type Ratings = {
   [key: string]: RatingValue | "";
 };
 
+const mealOptions = [
+  { value: "breakfast", label: "Breakfast" },
+  { value: "lunch", label: "Lunch" },
+  { value: "dinner", label: "Dinner" },
+];
+
 const FeedbackForm = ({ onSubmitSuccess }: FeedbackFormProps) => {
-  const [date, setDate] = useState<Date>(new Date());
   const [mealTime, setMealTime] = useState<string>("");
   const [ratings, setRatings] = useState<Ratings>({
     food_temperature: "",
@@ -73,7 +75,7 @@ const FeedbackForm = ({ onSubmitSuccess }: FeedbackFormProps) => {
     
     try {
       const { error } = await supabase.from("feedback").insert({
-        feedback_date: format(date, "yyyy-MM-dd"),
+        feedback_date: format(new Date(), "yyyy-MM-dd"),
         meal_time: mealTime,
         food_temperature: ratings.food_temperature,
         food_taste: ratings.food_taste,
@@ -110,37 +112,6 @@ const FeedbackForm = ({ onSubmitSuccess }: FeedbackFormProps) => {
         </p>
       </div>
 
-      {/* Date Selection */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">Date</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(d) => d && setDate(d)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </CardContent>
-      </Card>
-
       {/* Meal Time */}
       <Card>
         <CardHeader className="pb-3">
@@ -149,16 +120,32 @@ const FeedbackForm = ({ onSubmitSuccess }: FeedbackFormProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <RadioGroup value={mealTime} onValueChange={setMealTime} className="space-y-3">
-            {["breakfast", "lunch", "dinner"].map((meal) => (
-              <div key={meal} className="flex items-center space-x-3">
-                <RadioGroupItem value={meal} id={meal} />
-                <Label htmlFor={meal} className="capitalize cursor-pointer">
-                  {meal}
+          <div className="space-y-3">
+            {mealOptions.map((meal) => (
+              <button
+                key={meal.value}
+                type="button"
+                onClick={() => setMealTime(meal.value)}
+                className="flex items-center gap-3 w-full text-left"
+              >
+                <div
+                  className={cn(
+                    "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                    mealTime === meal.value
+                      ? "border-primary"
+                      : "border-muted-foreground/40"
+                  )}
+                >
+                  {mealTime === meal.value && (
+                    <div className="w-3 h-3 rounded-full bg-primary" />
+                  )}
+                </div>
+                <Label className="cursor-pointer text-base font-normal">
+                  {meal.label}
                 </Label>
-              </div>
+              </button>
             ))}
-          </RadioGroup>
+          </div>
         </CardContent>
       </Card>
 
