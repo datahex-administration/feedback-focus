@@ -1,0 +1,255 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
+import { connectDB, getDB } from './db.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors());
+app.use(express.json());
+
+await connectDB();
+
+const getFeedbackCollection = () => getDB().collection('feedback');
+const getAdminSettingsCollection = () => getDB().collection('admin_settings');
+const getPlacesCollection = () => getDB().collection('places');
+
+// ─── PLACES ───
+
+// Create a new place
+app.post('/api/places', async (req, res) => {
+  try {
+    const { name, name_ar, address, address_ar } = req.body;
+    if (!name) return res.status(400).json({ error: 'Place name is required' });
+
+    const slug = crypto.randomBytes(6).toString('hex');
+    const place = {
+      name,
+      name_ar: name_ar || '',
+      address: address || '',
+      address_ar: address_ar || '',
+      slug,
+      active: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+
+    const result = await getPlacesCollection().insertOne(place);
+    res.status(201).json({ ...place, _id: result.insertedId });
+  } catch (error) {
+    console.error('Error creating place:', error);
+    res.status(500).json({ error: 'Failed to create place' });
+  }
+});
+
+// Get all places
+app.get('/api/places', async (req, res) => {
+  try {
+    const places = await getPlacesCollection()
+      .find({})
+      .sort({ created_at: -1 })
+      .toArray();
+    res.json(places);
+  } catch (error) {
+    console.error('Error fetching places:', error);
+    res.status(500).json({ error: 'Failed to fetch places' });
+  }
+});
+
+// Get single place by slug (public)
+app.get('/api/places/slug/:slug', async (req, res) => {
+  try {
+    const place = await getPlacesCollection().findOne({ slug: req.params.slug });
+    if (!place) return res.status(404).json({ error: 'Place not found' });
+    res.json(place);
+  } catch (error) {
+    console.error('Error fetching place:', error);
+    res.status(500).json({ error: 'Failed to fetch place' });
+  }
+});
+
+// Update a place
+app.put('/api/places/:id', async (req, res) => {
+  try {
+    const { ObjectId } = (await import('mongodb'));
+    const { name, name_ar, address, address_ar, active } = req.body;
+    const update = {
+      ...(name !== undefined && { name }),
+      ...(name_ar !== undefined && { name_ar }),
+      ...(address !== undefined && { address }),
+      ...(address_ar !== undefined && { address_ar }),
+      ...(active !== undefined && { active }),
+      updated_at: new Date(),
+    };
+    await getPlacesCollection().updateOne({ _id: new ObjectId(req.params.id) }, { $set: update });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating place:', error);
+    res.status(500).json({ error: 'Failed to update place' });
+  }
+});
+
+// Delete a place
+app.delete('/api/places/:id', async (req, res) => {
+  try {
+    const { ObjectId } = (await import('mongodb'));
+    await getPlacesCollection().deleteOne({ _id: new ObjectId(req.params.id) });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting place:', error);
+    res.status(500).json({ error: 'Failed to delete place' });
+  }
+});
+
+// ─── FEEDBACK ───
+
+// Submit feedback (now with place_slug)
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { place_slug, ...rest } = req.body;
+
+    let place_name = '';
+    let place_id = null;
+    if (place_slug) {
+      const place = await getPlacesCollection().findOne({ slug: place_slug, active: true });
+      if (place) {
+        place_name = place.name;
+        place_id = place._id;
+      }
+    }
+
+    const feedbackData = {
+      ...rest,
+      place_slug: place_slug || null,
+      place_name: place_name || null,
+      place_id: place_id || null,
+      created_at: new Date(),
+      feedback_date: rest.feedback_date || new Date().toISOString().split('T')[0],
+    };
+
+    const result = await getFeedbackCollection().insertOne(feedbackData);
+    res.status(201).json({ id: result.insertedId, success: true });
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    res.status(500).json({ error: 'Failed to submit feedback' });
+  }
+});
+
+// Get feedback with filters
+app.get('/api/feedback', async (req, res) => {
+  try {
+    const { place_slug, meal_time, from_date, to_date, rating } = req.query;
+    const filter = {};
+
+    if (place_slug) filter.place_slug = place_slug;
+    if (meal_time) filter.meal_time = meal_time;
+    if (rating) filter.overall_experience = rating;
+
+    if (from_date || to_date) {
+      filter.feedback_date = {};
+      if (from_date) filter.feedback_date.$gte = from_date;
+      if (to_date) filter.feedback_date.$lte = to_date;
+    }
+
+    const feedbacks = await getFeedbackCollection()
+      .find(filter)
+      .sort({ created_at: -1 })
+      .toArray();
+
+    res.json(feedbacks);
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+    res.status(500).json({ error: 'Failed to fetch feedback' });
+  }
+});
+
+// Get feedback stats/analytics
+app.get('/api/feedback/stats', async (req, res) => {
+  try {
+    const { place_slug, from_date, to_date } = req.query;
+    const filter = {};
+
+    if (place_slug) filter.place_slug = place_slug;
+    if (from_date || to_date) {
+      filter.feedback_date = {};
+      if (from_date) filter.feedback_date.$gte = from_date;
+      if (to_date) filter.feedback_date.$lte = to_date;
+    }
+
+    const feedbacks = await getFeedbackCollection().find(filter).toArray();
+    const total = feedbacks.length;
+
+    if (total === 0) {
+      return res.json({ total: 0, byRating: {}, byMealTime: {}, byCategory: {}, byDate: [] });
+    }
+
+    // Count by overall rating
+    const byRating = {};
+    const byMealTime = {};
+    const byDate = {};
+    const categories = ['food_temperature', 'food_taste', 'food_aroma', 'menu_variety', 'staff_attitude', 'service_time', 'cleanliness'];
+    const byCategory = {};
+    categories.forEach(c => { byCategory[c] = { excellent: 0, very_good: 0, good: 0, average: 0, dissatisfied: 0 }; });
+
+    feedbacks.forEach(fb => {
+      // By rating
+      byRating[fb.overall_experience] = (byRating[fb.overall_experience] || 0) + 1;
+      // By meal time
+      byMealTime[fb.meal_time] = (byMealTime[fb.meal_time] || 0) + 1;
+      // By date
+      byDate[fb.feedback_date] = (byDate[fb.feedback_date] || 0) + 1;
+      // By category
+      categories.forEach(c => {
+        if (fb[c] && byCategory[c][fb[c]] !== undefined) {
+          byCategory[c][fb[c]]++;
+        }
+      });
+    });
+
+    const byDateArray = Object.entries(byDate)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    res.json({ total, byRating, byMealTime, byCategory, byDate: byDateArray });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
+// ─── ADMIN AUTH ───
+
+app.post('/api/admin/verify', async (req, res) => {
+  try {
+    const { passcode } = req.body;
+    let adminSettings = await getAdminSettingsCollection().findOne({ setting_key: 'admin_passcode' });
+
+    if (!adminSettings) {
+      await getAdminSettingsCollection().insertOne({
+        setting_key: 'admin_passcode',
+        setting_value: '54321',
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+      adminSettings = { setting_value: '54321' };
+    }
+
+    res.json({ valid: adminSettings.setting_value === passcode });
+  } catch (error) {
+    console.error('Error verifying passcode:', error);
+    res.status(500).json({ error: 'Failed to verify passcode' });
+  }
+});
+
+// Health
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', database: 'mongodb' });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
