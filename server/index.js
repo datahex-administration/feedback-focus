@@ -245,6 +245,21 @@ app.post('/api/admin/verify', async (req, res) => {
   }
 });
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Food City Feedback API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      places: '/api/places',
+      feedback: '/api/feedback',
+      stats: '/api/feedback/stats',
+      admin: '/api/admin/verify'
+    }
+  });
+});
+
 // Health
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', database: 'mongodb' });
