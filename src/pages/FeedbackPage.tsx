@@ -7,7 +7,7 @@ import ThankYouScreen from "@/components/ThankYouScreen";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Card, CardContent } from "@/components/ui/card";
 
-const API_URL = "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 interface Place {
   _id: string;

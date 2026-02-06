@@ -13,7 +13,7 @@ import {
   PolarAngleAxis, PolarRadiusAxis, Radar, Area, AreaChart,
 } from "recharts";
 
-const API_URL = "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#f97316", "#ef4444"];
 const RATING_KEYS = ["excellent", "very_good", "good", "average", "dissatisfied"];
