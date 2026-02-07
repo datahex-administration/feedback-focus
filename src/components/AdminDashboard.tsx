@@ -49,22 +49,19 @@ interface Feedback {
   place_slug: string | null;
   place_name: string | null;
   questionnaire_type?: QuestionnaireType;
-  /* toilet fields */
-  toilet_overall_cleanliness?: string;
+  /* housekeeping fields */
+  housekeeping_overall?: string;
   toilet_clean_at_use?: string;
   toilet_supplies_available?: string;
   toilet_unpleasant_smell?: string;
   toilet_area_needs_cleaning?: string;
   toilet_cleaned_frequently?: string;
-  toilet_suggestions?: string;
-  /* laundry fields */
-  laundry_overall_service?: string;
   laundry_properly_cleaned?: string;
   laundry_returned_on_time?: string;
   laundry_fresh_no_odor?: string;
   laundry_ironing_folding?: string;
   laundry_issues?: string;
-  laundry_suggestions?: string;
+  housekeeping_suggestions?: string;
   [key: string]: unknown;
 }
 
@@ -225,25 +222,20 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
           "Overall Experience": f.overall_experience,
           Suggestions: f.suggestions || "",
         });
-      } else if (qType === "toilet") {
+      } else if (qType === "housekeeping") {
         Object.assign(base, {
-          "Overall Cleanliness": f.toilet_overall_cleanliness || "",
-          "Clean at Use": f.toilet_clean_at_use || "",
+          "Overall Rating": (f as any).housekeeping_overall || "",
+          "Toilet Clean at Use": f.toilet_clean_at_use || "",
           "Supplies Available": f.toilet_supplies_available || "",
           "Unpleasant Smell": f.toilet_unpleasant_smell || "",
           "Area Needs Cleaning": f.toilet_area_needs_cleaning || "",
           "Cleaned Frequently": f.toilet_cleaned_frequently || "",
-          Suggestions: f.toilet_suggestions || "",
-        });
-      } else if (qType === "laundry") {
-        Object.assign(base, {
-          "Overall Service": f.laundry_overall_service || "",
-          "Properly Cleaned": f.laundry_properly_cleaned || "",
+          "Laundry Properly Cleaned": f.laundry_properly_cleaned || "",
           "Returned on Time": f.laundry_returned_on_time || "",
           "Fresh No Odor": f.laundry_fresh_no_odor || "",
           "Ironing/Folding": f.laundry_ironing_folding || "",
-          "Issues": f.laundry_issues || "",
-          Suggestions: f.laundry_suggestions || "",
+          "Laundry Issues": f.laundry_issues || "",
+          Suggestions: (f as any).housekeeping_suggestions || "",
         });
       }
       return base;
@@ -453,7 +445,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                             <TableHead className="w-[30px] text-center">#</TableHead>
                             <TableHead>{t("admin.date")}</TableHead>
                             <TableHead>{t("admin.places")}</TableHead>
-                            {(!activeQType || activeQType === "food") && activeQType !== "toilet" && activeQType !== "laundry" && (
+                            {(!activeQType || activeQType === "food") && activeQType !== "housekeeping" && (
                               <>
                                 {activeQType === "food" && <TableHead>{t("feedback.mealTime")}</TableHead>}
                                 {activeQType === "food" && <TableHead className="text-center">{t("admin.temperature")}</TableHead>}
@@ -465,22 +457,13 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                                 {activeQType === "food" && <TableHead className="text-center">{t("admin.clean")}</TableHead>}
                               </>
                             )}
-                            {activeQType === "toilet" && (
+                            {activeQType === "housekeeping" && (
                               <>
-                                <TableHead className="text-center">{t("questionnaire.toilet.cleanAtUse")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.toilet.suppliesAvailable")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.toilet.unpleasantSmell")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.toilet.areaNeedsCleaning")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.toilet.cleanedFrequently")}</TableHead>
-                              </>
-                            )}
-                            {activeQType === "laundry" && (
-                              <>
-                                <TableHead className="text-center">{t("questionnaire.laundry.properlyCleaned")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.laundry.returnedOnTime")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.laundry.freshNoOdor")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.laundry.ironingFoldingDone")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.laundry.issuesNoticed")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.housekeeping.cleanAtUse")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.housekeeping.suppliesAvailable")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.housekeeping.unpleasantSmell")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.housekeeping.properlyCleaned")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.housekeeping.returnedOnTime")}</TableHead>
                               </>
                             )}
                             {!activeQType && <TableHead>{t("admin.questionnaireType")}</TableHead>}
@@ -503,7 +486,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                               <TableCell className="text-xs max-w-[100px] truncate">
                                 {fb.place_name || "—"}
                               </TableCell>
-                              {(!activeQType || activeQType === "food") && activeQType !== "toilet" && activeQType !== "laundry" && (
+                              {(!activeQType || activeQType === "food") && activeQType !== "housekeeping" && (
                                 <>
                                   {activeQType === "food" && <TableCell className="capitalize text-xs">{t(`feedback.${fb.meal_time}`)}</TableCell>}
                                   {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.food_temperature} /></TableCell>}
@@ -515,22 +498,13 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                                   {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.cleanliness} /></TableCell>}
                                 </>
                               )}
-                              {activeQType === "toilet" && (
+                              {activeQType === "housekeeping" && (
                                 <>
                                   <TableCell className="text-center text-xs">{fb.toilet_clean_at_use ? t(`common.${fb.toilet_clean_at_use}`) : "—"}</TableCell>
                                   <TableCell className="text-center text-xs">{fb.toilet_supplies_available ? t(`common.${fb.toilet_supplies_available}`) : "—"}</TableCell>
                                   <TableCell className="text-center text-xs">{fb.toilet_unpleasant_smell ? t(`common.${fb.toilet_unpleasant_smell}`) : "—"}</TableCell>
-                                  <TableCell className="text-center text-xs">{fb.toilet_area_needs_cleaning || "—"}</TableCell>
-                                  <TableCell className="text-center text-xs">{fb.toilet_cleaned_frequently ? t(`common.${fb.toilet_cleaned_frequently === "not_sure" ? "notSure" : fb.toilet_cleaned_frequently}`) : "—"}</TableCell>
-                                </>
-                              )}
-                              {activeQType === "laundry" && (
-                                <>
                                   <TableCell className="text-center text-xs">{fb.laundry_properly_cleaned ? t(`common.${fb.laundry_properly_cleaned}`) : "—"}</TableCell>
                                   <TableCell className="text-center text-xs">{fb.laundry_returned_on_time ? t(`common.${fb.laundry_returned_on_time}`) : "—"}</TableCell>
-                                  <TableCell className="text-center text-xs">{fb.laundry_fresh_no_odor ? t(`common.${fb.laundry_fresh_no_odor}`) : "—"}</TableCell>
-                                  <TableCell className="text-center text-xs">{fb.laundry_ironing_folding || "—"}</TableCell>
-                                  <TableCell className="text-center text-xs">{fb.laundry_issues || "—"}</TableCell>
                                 </>
                               )}
                               {!activeQType && (
@@ -651,40 +625,38 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                     </>
                   )}
 
-                  {/* Toilet-specific sections */}
-                  {qType === "toilet" && (
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.toilet.cleanlinessQuestions")}</h4>
-                      <div className="grid grid-cols-1 gap-2">
-                        <DetailRowText label={t("questionnaire.toilet.cleanAtUse")} value={detailFeedback.toilet_clean_at_use === "yes" ? t("common.yes") : t("common.no")} />
-                        <DetailRowText label={t("questionnaire.toilet.suppliesAvailable")} value={detailFeedback.toilet_supplies_available === "yes" ? t("common.yes") : t("common.no")} />
-                        <DetailRowText label={t("questionnaire.toilet.unpleasantSmell")} value={detailFeedback.toilet_unpleasant_smell === "yes" ? t("common.yes") : t("common.no")} />
-                        <DetailRowText label={t("questionnaire.toilet.areaNeedsCleaning")} value={detailFeedback.toilet_area_needs_cleaning || "—"} />
-                        <DetailRowText label={t("questionnaire.toilet.cleanedFrequently")} value={
-                          detailFeedback.toilet_cleaned_frequently === "yes" ? t("common.yes") :
-                          detailFeedback.toilet_cleaned_frequently === "no" ? t("common.no") :
-                          t("common.notSure")
-                        } />
+                  {/* Housekeeping-specific sections (Toilet + Laundry) */}
+                  {qType === "housekeeping" && (
+                    <>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.housekeeping.toiletSection")}</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          <DetailRowText label={t("questionnaire.housekeeping.cleanAtUse")} value={detailFeedback.toilet_clean_at_use === "yes" ? t("common.yes") : t("common.no")} />
+                          <DetailRowText label={t("questionnaire.housekeeping.suppliesAvailable")} value={detailFeedback.toilet_supplies_available === "yes" ? t("common.yes") : t("common.no")} />
+                          <DetailRowText label={t("questionnaire.housekeeping.unpleasantSmell")} value={detailFeedback.toilet_unpleasant_smell === "yes" ? t("common.yes") : t("common.no")} />
+                          <DetailRowText label={t("questionnaire.housekeeping.areaNeedsCleaning")} value={detailFeedback.toilet_area_needs_cleaning || "—"} />
+                          <DetailRowText label={t("questionnaire.housekeeping.cleanedFrequently")} value={
+                            detailFeedback.toilet_cleaned_frequently === "yes" ? t("common.yes") :
+                            detailFeedback.toilet_cleaned_frequently === "no" ? t("common.no") :
+                            t("common.notSure")
+                          } />
+                        </div>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Laundry-specific sections */}
-                  {qType === "laundry" && (
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.laundry.serviceQuestions")}</h4>
-                      <div className="grid grid-cols-1 gap-2">
-                        <DetailRowText label={t("questionnaire.laundry.properlyCleaned")} value={detailFeedback.laundry_properly_cleaned === "yes" ? t("common.yes") : t("common.no")} />
-                        <DetailRowText label={t("questionnaire.laundry.returnedOnTime")} value={detailFeedback.laundry_returned_on_time === "yes" ? t("common.yes") : t("common.no")} />
-                        <DetailRowText label={t("questionnaire.laundry.freshNoOdor")} value={detailFeedback.laundry_fresh_no_odor === "yes" ? t("common.yes") : t("common.no")} />
-                        <DetailRowText label={t("questionnaire.laundry.ironingFoldingDone")} value={
-                          detailFeedback.laundry_ironing_folding === "yes" ? t("common.yes") :
-                          detailFeedback.laundry_ironing_folding === "no" ? t("common.no") :
-                          t("common.notApplicable")
-                        } />
-                        <DetailRowText label={t("questionnaire.laundry.issuesNoticed")} value={detailFeedback.laundry_issues || "—"} />
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.housekeeping.laundrySection")}</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          <DetailRowText label={t("questionnaire.housekeeping.properlyCleaned")} value={detailFeedback.laundry_properly_cleaned === "yes" ? t("common.yes") : t("common.no")} />
+                          <DetailRowText label={t("questionnaire.housekeeping.returnedOnTime")} value={detailFeedback.laundry_returned_on_time === "yes" ? t("common.yes") : t("common.no")} />
+                          <DetailRowText label={t("questionnaire.housekeeping.freshNoOdor")} value={detailFeedback.laundry_fresh_no_odor === "yes" ? t("common.yes") : t("common.no")} />
+                          <DetailRowText label={t("questionnaire.housekeeping.ironingFoldingDone")} value={
+                            detailFeedback.laundry_ironing_folding === "yes" ? t("common.yes") :
+                            detailFeedback.laundry_ironing_folding === "no" ? t("common.no") :
+                            t("common.notApplicable")
+                          } />
+                          <DetailRowText label={t("questionnaire.housekeeping.issuesNoticed")} value={detailFeedback.laundry_issues || "—"} />
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
 
                   {/* Overall */}

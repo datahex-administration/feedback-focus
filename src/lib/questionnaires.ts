@@ -1,4 +1,4 @@
-export type QuestionnaireType = "food" | "toilet" | "laundry";
+export type QuestionnaireType = "food" | "housekeeping";
 
 export interface RatingScaleOption {
   value: string;
@@ -144,138 +144,83 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     suggestionsField: "suggestions",
   },
 
-  /* ── Toilet Cleaning Feedback ── */
-  toilet: {
-    id: "toilet",
-    nameKey: "questionnaire.toilet.name",
-    welcomeKey: "questionnaire.toilet.welcome",
-    subtitleKey: "questionnaire.toilet.subtitle",
+  /* ── Housekeeping (Laundry & Toilet Cleaning) Feedback ── */
+  housekeeping: {
+    id: "housekeeping",
+    nameKey: "questionnaire.housekeeping.name",
+    welcomeKey: "questionnaire.housekeeping.welcome",
+    subtitleKey: "questionnaire.housekeeping.subtitle",
     ratingScale: FIVE_STAR_RATING_SCALE,
     hasMealTime: false,
     sections: [
       {
         id: "overall_rating",
-        titleKey: "questionnaire.toilet.overallCleanliness",
+        titleKey: "questionnaire.housekeeping.overallRating",
         fields: [
-          { id: "toilet_overall_cleanliness", labelKey: "", type: "rating_grid", required: true, showLabel: false },
+          { id: "housekeeping_overall", labelKey: "", type: "rating_grid", required: true, showLabel: false },
         ],
       },
       {
-        id: "cleanliness_questions",
-        titleKey: "questionnaire.toilet.cleanlinessQuestions",
+        id: "toilet_questions",
+        titleKey: "questionnaire.housekeeping.toiletSection",
         fields: [
-          { id: "toilet_clean_at_use", labelKey: "questionnaire.toilet.cleanAtUse", type: "radio", required: true, options: YES_NO },
-          { id: "toilet_supplies_available", labelKey: "questionnaire.toilet.suppliesAvailable", type: "radio", required: true, options: YES_NO },
-          { id: "toilet_unpleasant_smell", labelKey: "questionnaire.toilet.unpleasantSmell", type: "radio", required: true, options: YES_NO },
-        ],
-      },
-      {
-        id: "area_cleaning",
-        titleKey: "questionnaire.toilet.areaNeedsCleaningTitle",
-        fields: [
+          { id: "toilet_clean_at_use", labelKey: "questionnaire.housekeeping.cleanAtUse", type: "radio", required: true, options: YES_NO },
+          { id: "toilet_supplies_available", labelKey: "questionnaire.housekeeping.suppliesAvailable", type: "radio", required: true, options: YES_NO },
+          { id: "toilet_unpleasant_smell", labelKey: "questionnaire.housekeeping.unpleasantSmell", type: "radio", required: true, options: YES_NO },
           {
             id: "toilet_area_needs_cleaning",
-            labelKey: "questionnaire.toilet.areaNeedsCleaning",
+            labelKey: "questionnaire.housekeeping.areaNeedsCleaning",
             type: "radio",
             required: true,
             options: [
-              { value: "toilet_seat", labelKey: "questionnaire.toilet.toiletSeat" },
-              { value: "floor", labelKey: "questionnaire.toilet.floor" },
-              { value: "wash_basin", labelKey: "questionnaire.toilet.washBasin" },
-              { value: "none", labelKey: "questionnaire.toilet.noneOption" },
+              { value: "toilet_seat", labelKey: "questionnaire.housekeeping.toiletSeat" },
+              { value: "floor", labelKey: "questionnaire.housekeeping.floor" },
+              { value: "wash_basin", labelKey: "questionnaire.housekeeping.washBasin" },
+              { value: "none", labelKey: "questionnaire.housekeeping.noneOption" },
             ],
           },
+          { id: "toilet_cleaned_frequently", labelKey: "questionnaire.housekeeping.cleanedFrequently", type: "radio", required: true, options: YES_NO_NOTSURE },
         ],
       },
       {
-        id: "frequency",
-        titleKey: "questionnaire.toilet.cleaningFrequency",
+        id: "laundry_questions",
+        titleKey: "questionnaire.housekeeping.laundrySection",
         fields: [
-          { id: "toilet_cleaned_frequently", labelKey: "questionnaire.toilet.cleanedFrequently", type: "radio", required: true, options: YES_NO_NOTSURE },
+          { id: "laundry_properly_cleaned", labelKey: "questionnaire.housekeeping.properlyCleaned", type: "radio", required: true, options: YES_NO },
+          { id: "laundry_returned_on_time", labelKey: "questionnaire.housekeeping.returnedOnTime", type: "radio", required: true, options: YES_NO },
+          { id: "laundry_fresh_no_odor", labelKey: "questionnaire.housekeeping.freshNoOdor", type: "radio", required: true, options: YES_NO },
+          { id: "laundry_ironing_folding", labelKey: "questionnaire.housekeeping.ironingFoldingDone", type: "radio", required: true, options: YES_NO_NA },
+          {
+            id: "laundry_issues",
+            labelKey: "questionnaire.housekeeping.issuesNoticed",
+            type: "radio",
+            required: true,
+            options: [
+              { value: "clothes_damaged", labelKey: "questionnaire.housekeeping.clothesDamaged" },
+              { value: "stains_not_removed", labelKey: "questionnaire.housekeeping.stainsNotRemoved" },
+              { value: "missing_items", labelKey: "questionnaire.housekeeping.missingItems" },
+              { value: "no_issues", labelKey: "questionnaire.housekeeping.noIssues" },
+            ],
+          },
         ],
       },
       {
         id: "suggestions",
         titleKey: "feedback.suggestions",
         fields: [
-          { id: "toilet_suggestions", labelKey: "questionnaire.toilet.suggestionsPlaceholder", type: "textarea" },
+          { id: "housekeeping_suggestions", labelKey: "questionnaire.housekeeping.suggestionsPlaceholder", type: "textarea" },
         ],
       },
     ],
-    overallRatingField: "toilet_overall_cleanliness",
+    overallRatingField: "housekeeping_overall",
     categoryFields: [],
     radioFields: [
       "toilet_clean_at_use", "toilet_supplies_available", "toilet_unpleasant_smell",
       "toilet_area_needs_cleaning", "toilet_cleaned_frequently",
-    ],
-    suggestionsField: "toilet_suggestions",
-  },
-
-  /* ── Laundry Service Feedback ── */
-  laundry: {
-    id: "laundry",
-    nameKey: "questionnaire.laundry.name",
-    welcomeKey: "questionnaire.laundry.welcome",
-    subtitleKey: "questionnaire.laundry.subtitle",
-    ratingScale: FIVE_STAR_RATING_SCALE,
-    hasMealTime: false,
-    sections: [
-      {
-        id: "overall_rating",
-        titleKey: "questionnaire.laundry.overallService",
-        fields: [
-          { id: "laundry_overall_service", labelKey: "", type: "rating_grid", required: true, showLabel: false },
-        ],
-      },
-      {
-        id: "service_questions",
-        titleKey: "questionnaire.laundry.serviceQuestions",
-        fields: [
-          { id: "laundry_properly_cleaned", labelKey: "questionnaire.laundry.properlyCleaned", type: "radio", required: true, options: YES_NO },
-          { id: "laundry_returned_on_time", labelKey: "questionnaire.laundry.returnedOnTime", type: "radio", required: true, options: YES_NO },
-          { id: "laundry_fresh_no_odor", labelKey: "questionnaire.laundry.freshNoOdor", type: "radio", required: true, options: YES_NO },
-        ],
-      },
-      {
-        id: "ironing",
-        titleKey: "questionnaire.laundry.ironingFolding",
-        fields: [
-          { id: "laundry_ironing_folding", labelKey: "questionnaire.laundry.ironingFoldingDone", type: "radio", required: true, options: YES_NO_NA },
-        ],
-      },
-      {
-        id: "issues",
-        titleKey: "questionnaire.laundry.issuesTitle",
-        fields: [
-          {
-            id: "laundry_issues",
-            labelKey: "questionnaire.laundry.issuesNoticed",
-            type: "radio",
-            required: true,
-            options: [
-              { value: "clothes_damaged", labelKey: "questionnaire.laundry.clothesDamaged" },
-              { value: "stains_not_removed", labelKey: "questionnaire.laundry.stainsNotRemoved" },
-              { value: "missing_items", labelKey: "questionnaire.laundry.missingItems" },
-              { value: "no_issues", labelKey: "questionnaire.laundry.noIssues" },
-            ],
-          },
-        ],
-      },
-      {
-        id: "suggestions",
-        titleKey: "feedback.suggestions",
-        fields: [
-          { id: "laundry_suggestions", labelKey: "questionnaire.laundry.suggestionsPlaceholder", type: "textarea" },
-        ],
-      },
-    ],
-    overallRatingField: "laundry_overall_service",
-    categoryFields: [],
-    radioFields: [
       "laundry_properly_cleaned", "laundry_returned_on_time", "laundry_fresh_no_odor",
       "laundry_ironing_folding", "laundry_issues",
     ],
-    suggestionsField: "laundry_suggestions",
+    suggestionsField: "housekeeping_suggestions",
   },
 };
 
@@ -285,8 +230,7 @@ export const getQuestionnaire = (type: QuestionnaireType): QuestionnaireConfig =
 
 export const QUESTIONNAIRE_OPTIONS: { value: QuestionnaireType; labelKey: string }[] = [
   { value: "food", labelKey: "questionnaire.food.name" },
-  { value: "toilet", labelKey: "questionnaire.toilet.name" },
-  { value: "laundry", labelKey: "questionnaire.laundry.name" },
+  { value: "housekeeping", labelKey: "questionnaire.housekeeping.name" },
 ];
 
 /** Get all non-textarea, non-meal_time field IDs for a questionnaire */

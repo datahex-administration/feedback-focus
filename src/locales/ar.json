@@ -9,43 +9,32 @@
     "food": {
       "name": "تقييم الطعام"
     },
-    "toilet": {
-      "name": "تقييم نظافة دورة المياه",
-      "welcome": "تقييم نظافة دورة المياه",
-      "subtitle": "ساعدنا في الحفاظ على معايير النظافة",
-      "overallCleanliness": "التقييم العام للنظافة",
-      "cleanlinessQuestions": "أسئلة النظافة",
+    "housekeeping": {
+      "name": "تقييم الغسيل ونظافة دورة المياه",
+      "welcome": "تقييم الغسيل ونظافة دورة المياه",
+      "subtitle": "ساعدنا في الحفاظ على معايير النظافة والخدمة",
+      "overallRating": "التقييم العام للخدمات المنزلية",
+      "toiletSection": "نظافة دورة المياه",
       "cleanAtUse": "هل كانت دورة المياه نظيفة وقت الاستخدام؟",
       "suppliesAvailable": "هل كانت المستلزمات الأساسية متوفرة (ورق تواليت، صابون، ماء)؟",
       "unpleasantSmell": "هل لاحظت أي رائحة كريهة؟",
-      "areaNeedsCleaningTitle": "المنطقة التي تحتاج اهتماماً",
       "areaNeedsCleaning": "أي منطقة كانت تحتاج للتنظيف أكثر؟",
       "toiletSeat": "مقعد المرحاض",
       "floor": "الأرضية",
       "washBasin": "حوض الغسيل",
       "noneOption": "لا شيء",
-      "cleaningFrequency": "تكرار التنظيف",
       "cleanedFrequently": "هل تم تنظيف دورة المياه بشكل متكرر كافٍ؟",
-      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين النظافة..."
-    },
-    "laundry": {
-      "name": "تقييم خدمة الغسيل",
-      "welcome": "تقييم خدمة الغسيل",
-      "subtitle": "ساعدنا في تحسين خدمة الغسيل",
-      "overallService": "التقييم العام لخدمة الغسيل",
-      "serviceQuestions": "جودة الخدمة",
+      "laundrySection": "خدمة الغسيل",
       "properlyCleaned": "هل تم تنظيف ملابسك بشكل صحيح؟",
       "returnedOnTime": "هل تم إرجاع ملابسك في الوقت المحدد؟",
       "freshNoOdor": "هل كانت ملابسك نظيفة وخالية من الروائح الكريهة؟",
-      "ironingFolding": "الكي والطي",
       "ironingFoldingDone": "هل تم الكي/الطي بشكل صحيح؟",
-      "issuesTitle": "المشاكل الملاحظة",
       "issuesNoticed": "هل لاحظت أي مشكلة؟",
       "clothesDamaged": "ملابس تالفة",
       "stainsNotRemoved": "بقع لم تُزَل",
       "missingItems": "أغراض مفقودة",
       "noIssues": "لا مشاكل",
-      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين خدمة الغسيل..."
+      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين خدماتنا المنزلية..."
     }
   },
   "nav": {

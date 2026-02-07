@@ -221,6 +221,8 @@ app.get('/api/feedback/stats', async (req, res) => {
     // Overall rating field depends on questionnaire type
     const overallRatingFieldMap = {
       food: 'overall_experience',
+      housekeeping: 'housekeeping_overall',
+      // backward compat for old data
       toilet: 'toilet_overall_cleanliness',
       laundry: 'laundry_overall_service',
     };
@@ -252,8 +254,15 @@ app.get('/api/feedback/stats', async (req, res) => {
       return res.json({ total, byRating, byMealTime, byCategory, byDate: byDateArray });
     }
 
-    // Toilet & Laundry: aggregate radio/choice fields
+    // Housekeeping: aggregate radio/choice fields (toilet + laundry combined)
     const radioFieldsMap = {
+      housekeeping: [
+        'toilet_clean_at_use', 'toilet_supplies_available', 'toilet_unpleasant_smell',
+        'toilet_area_needs_cleaning', 'toilet_cleaned_frequently',
+        'laundry_properly_cleaned', 'laundry_returned_on_time', 'laundry_fresh_no_odor',
+        'laundry_ironing_folding', 'laundry_issues',
+      ],
+      // backward compat for old data
       toilet: ['toilet_clean_at_use', 'toilet_supplies_available', 'toilet_unpleasant_smell', 'toilet_area_needs_cleaning', 'toilet_cleaned_frequently'],
       laundry: ['laundry_properly_cleaned', 'laundry_returned_on_time', 'laundry_fresh_no_odor', 'laundry_ironing_folding', 'laundry_issues'],
     };

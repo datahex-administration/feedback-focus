@@ -9,43 +9,32 @@
     "food": {
       "name": "Food Feedback"
     },
-    "toilet": {
-      "name": "Toilet Cleaning Feedback",
-      "welcome": "Toilet Cleaning Feedback",
-      "subtitle": "Help us maintain cleanliness standards",
-      "overallCleanliness": "Overall Cleanliness Rating",
-      "cleanlinessQuestions": "Cleanliness Questions",
+    "housekeeping": {
+      "name": "Laundry & Toilet Cleaning Feedback",
+      "welcome": "Laundry & Toilet Cleaning Feedback",
+      "subtitle": "Help us maintain cleanliness and service standards",
+      "overallRating": "Overall Housekeeping Rating",
+      "toiletSection": "Toilet Cleanliness",
       "cleanAtUse": "Was the toilet clean at the time of use?",
       "suppliesAvailable": "Were basic supplies available (toilet paper, soap, water)?",
       "unpleasantSmell": "Did you notice any unpleasant smell?",
-      "areaNeedsCleaningTitle": "Area Needing Attention",
       "areaNeedsCleaning": "Which area needed cleaning the most?",
       "toiletSeat": "Toilet Seat",
       "floor": "Floor",
       "washBasin": "Wash Basin",
       "noneOption": "None",
-      "cleaningFrequency": "Cleaning Frequency",
       "cleanedFrequently": "Was the toilet cleaned frequently enough?",
-      "suggestionsPlaceholder": "Any comments or suggestions to improve cleanliness..."
-    },
-    "laundry": {
-      "name": "Laundry Service Feedback",
-      "welcome": "Laundry Service Feedback",
-      "subtitle": "Help us improve our laundry service",
-      "overallService": "Overall Laundry Service Rating",
-      "serviceQuestions": "Service Quality",
+      "laundrySection": "Laundry Service",
       "properlyCleaned": "Were your clothes properly cleaned?",
       "returnedOnTime": "Were your clothes returned on time?",
       "freshNoOdor": "Were your clothes fresh and free from bad odor?",
-      "ironingFolding": "Ironing & Folding",
       "ironingFoldingDone": "Was ironing/folding done properly?",
-      "issuesTitle": "Issues Noticed",
       "issuesNoticed": "Did you notice any issue?",
       "clothesDamaged": "Clothes Damaged",
       "stainsNotRemoved": "Stains Not Removed",
       "missingItems": "Missing Items",
       "noIssues": "No Issues",
-      "suggestionsPlaceholder": "Any comments or suggestions to improve the laundry service..."
+      "suggestionsPlaceholder": "Any comments or suggestions to improve our housekeeping services..."
     }
   },
   "nav": {

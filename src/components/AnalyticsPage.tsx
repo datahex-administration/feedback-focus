@@ -240,7 +240,7 @@ const AnalyticsPage = () => {
     <div className="space-y-6">
       {/* Questionnaire Type Tabs */}
       <Tabs value={selectedQuestionnaire} onValueChange={(v) => { setSelectedQuestionnaire(v as QuestionnaireType); setSelectedPlace("all"); }}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           {QUESTIONNAIRE_OPTIONS.map(q => (
             <TabsTrigger key={q.value} value={q.value}>{t(q.labelKey)}</TabsTrigger>
           ))}
@@ -481,8 +481,8 @@ const AnalyticsPage = () => {
             </>
           )}
 
-          {/* ═══ TOILET / LAUNDRY SPECIFIC CHARTS ═══ */}
-          {(selectedQuestionnaire === "toilet" || selectedQuestionnaire === "laundry") && (
+          {/* ═══ HOUSEKEEPING SPECIFIC CHARTS ═══ */}
+          {selectedQuestionnaire === "housekeeping" && (
             <>
               {/* Yes/No Distribution */}
               {yesNoChartData.length > 0 && (
