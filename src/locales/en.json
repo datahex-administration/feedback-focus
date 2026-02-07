@@ -1,4 +1,53 @@
 {
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "notSure": "Not Sure",
+    "notApplicable": "Not Applicable"
+  },
+  "questionnaire": {
+    "food": {
+      "name": "Food Feedback"
+    },
+    "toilet": {
+      "name": "Toilet Cleaning Feedback",
+      "welcome": "Toilet Cleaning Feedback",
+      "subtitle": "Help us maintain cleanliness standards",
+      "overallCleanliness": "Overall Cleanliness Rating",
+      "cleanlinessQuestions": "Cleanliness Questions",
+      "cleanAtUse": "Was the toilet clean at the time of use?",
+      "suppliesAvailable": "Were basic supplies available (toilet paper, soap, water)?",
+      "unpleasantSmell": "Did you notice any unpleasant smell?",
+      "areaNeedsCleaningTitle": "Area Needing Attention",
+      "areaNeedsCleaning": "Which area needed cleaning the most?",
+      "toiletSeat": "Toilet Seat",
+      "floor": "Floor",
+      "washBasin": "Wash Basin",
+      "noneOption": "None",
+      "cleaningFrequency": "Cleaning Frequency",
+      "cleanedFrequently": "Was the toilet cleaned frequently enough?",
+      "suggestionsPlaceholder": "Any comments or suggestions to improve cleanliness..."
+    },
+    "laundry": {
+      "name": "Laundry Service Feedback",
+      "welcome": "Laundry Service Feedback",
+      "subtitle": "Help us improve our laundry service",
+      "overallService": "Overall Laundry Service Rating",
+      "serviceQuestions": "Service Quality",
+      "properlyCleaned": "Were your clothes properly cleaned?",
+      "returnedOnTime": "Were your clothes returned on time?",
+      "freshNoOdor": "Were your clothes fresh and free from bad odor?",
+      "ironingFolding": "Ironing & Folding",
+      "ironingFoldingDone": "Was ironing/folding done properly?",
+      "issuesTitle": "Issues Noticed",
+      "issuesNoticed": "Did you notice any issue?",
+      "clothesDamaged": "Clothes Damaged",
+      "stainsNotRemoved": "Stains Not Removed",
+      "missingItems": "Missing Items",
+      "noIssues": "No Issues",
+      "suggestionsPlaceholder": "Any comments or suggestions to improve the laundry service..."
+    }
+  },
   "nav": {
     "home": "Home",
     "admin": "Admin"
@@ -36,7 +85,9 @@
     "very_good": "Very Good",
     "good": "Good",
     "average": "Average",
-    "dissatisfied": "Dissatisfied"
+    "dissatisfied": "Dissatisfied",
+    "poor": "Poor",
+    "very_poor": "Very Poor"
   },
   "admin": {
     "dashboard": "Admin Dashboard",
@@ -71,6 +122,10 @@
     "placeNameAr": "Place Name (Arabic)",
     "address": "Address",
     "addressAr": "Address (Arabic)",
+    "questionnaire": "Questionnaire",
+    "selectQuestionnaire": "Select Questionnaire",
+    "allQuestionnaires": "All Questionnaires",
+    "questionnaireType": "Questionnaire Type",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -98,7 +153,18 @@
     "confirmDelete": "Are you sure you want to delete this place?",
     "showing": "Showing",
     "results": "results",
-    "exportSuccess": "Data exported successfully!"
+    "exportSuccess": "Data exported successfully!",
+    "responseBreakdown": "Response Breakdown",
+    "yesNoDistribution": "Yes / No Distribution",
+    "fieldDistribution": "Response Distribution",
+    "totalResponses": "Total Responses",
+    "satisfactionRate": "Satisfaction Rate",
+    "qualityRadar": "Quality Radar",
+    "avgScore": "Avg Score",
+    "bestCategory": "Best Category",
+    "needsAttention": "Needs Attention",
+    "categoryScoresSummary": "Category Scores Summary",
+    "dailyVolume": "Daily feedback volume over time"
   },
   "thankyou": {
     "title": "Thank You!",
@@ -108,6 +174,7 @@
   "toast": {
     "selectMealTime": "Please select a meal time",
     "completeRatings": "Please complete all ratings",
+    "completeAllFields": "Please complete all required fields",
     "thankYou": "Thank you for your feedback!",
     "submitError": "Failed to submit feedback. Please try again.",
     "welcomeAdmin": "Welcome, Admin!",

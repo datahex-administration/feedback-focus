@@ -6,6 +6,7 @@ import FeedbackForm from "@/components/FeedbackForm";
 import ThankYouScreen from "@/components/ThankYouScreen";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Card, CardContent } from "@/components/ui/card";
+import type { QuestionnaireType } from "@/lib/questionnaires";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -17,6 +18,7 @@ interface Place {
   address?: string;
   address_ar?: string;
   active: boolean;
+  questionnaire_type?: QuestionnaireType;
 }
 
 const FeedbackPage = () => {
@@ -121,6 +123,7 @@ const FeedbackPage = () => {
             onSubmitSuccess={() => setIsSubmitted(true)}
             placeSlug={place?.slug}
             placeName={place?.name}
+            questionnaireType={place?.questionnaire_type || "food"}
           />
         )}
       </main>

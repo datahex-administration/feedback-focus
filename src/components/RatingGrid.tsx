@@ -1,7 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
-type RatingValue = "excellent" | "very_good" | "good" | "average" | "dissatisfied";
+interface RatingScaleOption {
+  value: string;
+  labelKey: string;
+}
 
 interface RatingItem {
   label: string;
@@ -10,12 +13,13 @@ interface RatingItem {
 
 interface RatingGridProps {
   items: RatingItem[];
-  ratings: { [key: string]: RatingValue | "" };
-  onRatingChange: (field: string, value: RatingValue) => void;
+  ratings: { [key: string]: string };
+  onRatingChange: (field: string, value: string) => void;
   showLabel?: boolean;
+  ratingScale?: RatingScaleOption[];
 }
 
-const ratingKeys: { value: RatingValue; labelKey: string }[] = [
+const defaultRatingKeys: RatingScaleOption[] = [
   { value: "excellent", labelKey: "ratings.excellent" },
   { value: "very_good", labelKey: "ratings.very_good" },
   { value: "good", labelKey: "ratings.good" },
@@ -23,8 +27,9 @@ const ratingKeys: { value: RatingValue; labelKey: string }[] = [
   { value: "dissatisfied", labelKey: "ratings.dissatisfied" },
 ];
 
-const RatingGrid = ({ items, ratings, onRatingChange, showLabel = true }: RatingGridProps) => {
+const RatingGrid = ({ items, ratings, onRatingChange, showLabel = true, ratingScale }: RatingGridProps) => {
   const { t } = useTranslation();
+  const ratingKeys = ratingScale || defaultRatingKeys;
 
   return (
     <div className="w-full">

@@ -26,6 +26,7 @@ import { utils, writeFile } from "xlsx";
 import LanguageSwitcher from "./LanguageSwitcher";
 import PlacesManager from "./PlacesManager";
 import AnalyticsPage from "./AnalyticsPage";
+import { QUESTIONNAIRE_OPTIONS, getQuestionnaire, type QuestionnaireType } from "@/lib/questionnaires";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const PAGE_SIZE = 15;
@@ -47,6 +48,24 @@ interface Feedback {
   suggestions: string | null;
   place_slug: string | null;
   place_name: string | null;
+  questionnaire_type?: QuestionnaireType;
+  /* toilet fields */
+  toilet_overall_cleanliness?: string;
+  toilet_clean_at_use?: string;
+  toilet_supplies_available?: string;
+  toilet_unpleasant_smell?: string;
+  toilet_area_needs_cleaning?: string;
+  toilet_cleaned_frequently?: string;
+  toilet_suggestions?: string;
+  /* laundry fields */
+  laundry_overall_service?: string;
+  laundry_properly_cleaned?: string;
+  laundry_returned_on_time?: string;
+  laundry_fresh_no_odor?: string;
+  laundry_ironing_folding?: string;
+  laundry_issues?: string;
+  laundry_suggestions?: string;
+  [key: string]: unknown;
 }
 
 interface Place {
@@ -96,6 +115,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   const [filterRating, setFilterRating] = useState("all");
   const [filterFromDate, setFilterFromDate] = useState("");
   const [filterToDate, setFilterToDate] = useState("");
+  const [filterQuestionnaire, setFilterQuestionnaire] = useState<string>("all");
 
   const formatRating = (r: string) => t(`ratings.${r}`);
   const getId = (f: Feedback) => f._id || f.id || "";
@@ -117,6 +137,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       if (filterRating !== "all") params.set("rating", filterRating);
       if (filterFromDate) params.set("from_date", filterFromDate);
       if (filterToDate) params.set("to_date", filterToDate);
+      if (filterQuestionnaire !== "all") params.set("questionnaire_type", filterQuestionnaire);
 
       const res = await fetch(`${API_URL}/api/feedback?${params}`);
       if (!res.ok) throw new Error();
@@ -130,7 +151,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   };
 
   useEffect(() => { fetchPlaces(); }, []);
-  useEffect(() => { fetchFeedbacks(); }, [filterPlace, filterMeal, filterRating, filterFromDate, filterToDate]);
+  useEffect(() => { fetchFeedbacks(); }, [filterPlace, filterMeal, filterRating, filterFromDate, filterToDate, filterQuestionnaire]);
 
   /* ── Filters helpers ── */
   const clearFilters = () => {
@@ -139,23 +160,43 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
     setFilterRating("all");
     setFilterFromDate("");
     setFilterToDate("");
+    setFilterQuestionnaire("all");
   };
   const hasActiveFilters =
-    filterPlace !== "all" || filterMeal !== "all" || filterRating !== "all" || filterFromDate || filterToDate;
+    filterPlace !== "all" || filterMeal !== "all" || filterRating !== "all" || filterFromDate || filterToDate || filterQuestionnaire !== "all";
+
+  /* Helper: get the overall rating field value for any feedback */
+  const getOverallRating = (fb: Feedback): string => {
+    const qType = fb.questionnaire_type || "food";
+    const cfg = getQuestionnaire(qType);
+    return (fb[cfg.overallRatingField] as string) || "";
+  };
+
+  /* Helper: get suggestions field value for any feedback */
+  const getSuggestions = (fb: Feedback): string => {
+    const qType = fb.questionnaire_type || "food";
+    const cfg = getQuestionnaire(qType);
+    return (fb[cfg.suggestionsField] as string) || "";
+  };
 
   /* ── Stats ── */
   const stats = useMemo(() => {
     const total = feedbacks.length;
-    const excellent = feedbacks.filter(f => f.overall_experience === "excellent").length;
-    const veryGood = feedbacks.filter(f => f.overall_experience === "very_good").length;
-    const good = feedbacks.filter(f => f.overall_experience === "good").length;
-    const average = feedbacks.filter(f => f.overall_experience === "average").length;
-    const dissatisfied = feedbacks.filter(f => f.overall_experience === "dissatisfied").length;
-    const positive = excellent + veryGood + good;
-    const negative = average + dissatisfied;
+    const excellent = feedbacks.filter(f => {
+      const or = getOverallRating(f);
+      return or === "excellent";
+    }).length;
+    const positive = feedbacks.filter(f => {
+      const or = getOverallRating(f);
+      return ["excellent", "very_good", "good"].includes(or);
+    }).length;
+    const negative = feedbacks.filter(f => {
+      const or = getOverallRating(f);
+      return ["average", "dissatisfied", "poor", "very_poor"].includes(or);
+    }).length;
     const satisfactionPct = total ? Math.round((positive / total) * 100) : 0;
-    const withSuggestions = feedbacks.filter(f => f.suggestions).length;
-    return { total, excellent, veryGood, good, average, dissatisfied, positive, negative, satisfactionPct, withSuggestions };
+    const withSuggestions = feedbacks.filter(f => getSuggestions(f)).length;
+    return { total, excellent, positive, negative, satisfactionPct, withSuggestions };
   }, [feedbacks]);
 
   /* ── Pagination ── */
@@ -164,22 +205,50 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
 
   /* ── Export ── */
   const exportToExcel = () => {
-    const rows = feedbacks.map(f => ({
-      Date: f.feedback_date,
-      "Meal Time": f.meal_time,
-      Place: f.place_name || "N/A",
-      "Food Temperature": f.food_temperature,
-      "Food Taste": f.food_taste,
-      "Food Aroma": f.food_aroma,
-      "Menu Variety": f.menu_variety,
-      "Staff Attitude": f.staff_attitude,
-      "Service Time": f.service_time,
-      Cleanliness: f.cleanliness,
-      "Overall Experience": f.overall_experience,
-      Suggestions: f.suggestions || "",
-    }));
+    const rows = feedbacks.map(f => {
+      const qType = f.questionnaire_type || "food";
+      const base: Record<string, string> = {
+        Date: f.feedback_date,
+        Place: f.place_name || "N/A",
+        "Questionnaire": qType,
+      };
+      if (qType === "food") {
+        Object.assign(base, {
+          "Meal Time": f.meal_time,
+          "Food Temperature": f.food_temperature,
+          "Food Taste": f.food_taste,
+          "Food Aroma": f.food_aroma,
+          "Menu Variety": f.menu_variety,
+          "Staff Attitude": f.staff_attitude,
+          "Service Time": f.service_time,
+          Cleanliness: f.cleanliness,
+          "Overall Experience": f.overall_experience,
+          Suggestions: f.suggestions || "",
+        });
+      } else if (qType === "toilet") {
+        Object.assign(base, {
+          "Overall Cleanliness": f.toilet_overall_cleanliness || "",
+          "Clean at Use": f.toilet_clean_at_use || "",
+          "Supplies Available": f.toilet_supplies_available || "",
+          "Unpleasant Smell": f.toilet_unpleasant_smell || "",
+          "Area Needs Cleaning": f.toilet_area_needs_cleaning || "",
+          "Cleaned Frequently": f.toilet_cleaned_frequently || "",
+          Suggestions: f.toilet_suggestions || "",
+        });
+      } else if (qType === "laundry") {
+        Object.assign(base, {
+          "Overall Service": f.laundry_overall_service || "",
+          "Properly Cleaned": f.laundry_properly_cleaned || "",
+          "Returned on Time": f.laundry_returned_on_time || "",
+          "Fresh No Odor": f.laundry_fresh_no_odor || "",
+          "Ironing/Folding": f.laundry_ironing_folding || "",
+          "Issues": f.laundry_issues || "",
+          Suggestions: f.laundry_suggestions || "",
+        });
+      }
+      return base;
+    });
     const ws = utils.json_to_sheet(rows);
-    /* Auto column widths */
     ws["!cols"] = Object.keys(rows[0] || {}).map(() => ({ wch: 18 }));
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, "Feedback");
@@ -188,6 +257,10 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   };
 
   /* ──────────── RENDER ──────────── */
+
+  /* Current active questionnaire filter for table columns */
+  const activeQType = filterQuestionnaire !== "all" ? filterQuestionnaire as QuestionnaireType : null;
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -245,6 +318,18 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
               <Card className="animate-fade-in">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <div>
+                      <Label className="text-xs mb-1 block">{t("admin.questionnaireType")}</Label>
+                      <Select value={filterQuestionnaire} onValueChange={setFilterQuestionnaire}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t("admin.allQuestionnaires")}</SelectItem>
+                          {QUESTIONNAIRE_OPTIONS.map(q => (
+                            <SelectItem key={q.value} value={q.value}>{t(q.labelKey)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div>
                       <Label className="text-xs mb-1 block">{t("admin.places")}</Label>
                       <Select value={filterPlace} onValueChange={setFilterPlace}>
@@ -367,21 +452,47 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                           <TableRow className="bg-muted/50">
                             <TableHead className="w-[30px] text-center">#</TableHead>
                             <TableHead>{t("admin.date")}</TableHead>
-                            <TableHead>{t("feedback.mealTime")}</TableHead>
                             <TableHead>{t("admin.places")}</TableHead>
-                            <TableHead className="text-center">{t("admin.temperature")}</TableHead>
-                            <TableHead className="text-center">{t("admin.taste")}</TableHead>
-                            <TableHead className="text-center">{t("admin.aroma")}</TableHead>
-                            <TableHead className="text-center">{t("admin.variety")}</TableHead>
-                            <TableHead className="text-center">{t("admin.staff")}</TableHead>
-                            <TableHead className="text-center">{t("admin.time")}</TableHead>
-                            <TableHead className="text-center">{t("admin.clean")}</TableHead>
+                            {(!activeQType || activeQType === "food") && activeQType !== "toilet" && activeQType !== "laundry" && (
+                              <>
+                                {activeQType === "food" && <TableHead>{t("feedback.mealTime")}</TableHead>}
+                                {activeQType === "food" && <TableHead className="text-center">{t("admin.temperature")}</TableHead>}
+                                {activeQType === "food" && <TableHead className="text-center">{t("admin.taste")}</TableHead>}
+                                {activeQType === "food" && <TableHead className="text-center">{t("admin.aroma")}</TableHead>}
+                                {activeQType === "food" && <TableHead className="text-center">{t("admin.variety")}</TableHead>}
+                                {activeQType === "food" && <TableHead className="text-center">{t("admin.staff")}</TableHead>}
+                                {activeQType === "food" && <TableHead className="text-center">{t("admin.time")}</TableHead>}
+                                {activeQType === "food" && <TableHead className="text-center">{t("admin.clean")}</TableHead>}
+                              </>
+                            )}
+                            {activeQType === "toilet" && (
+                              <>
+                                <TableHead className="text-center">{t("questionnaire.toilet.cleanAtUse")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.toilet.suppliesAvailable")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.toilet.unpleasantSmell")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.toilet.areaNeedsCleaning")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.toilet.cleanedFrequently")}</TableHead>
+                              </>
+                            )}
+                            {activeQType === "laundry" && (
+                              <>
+                                <TableHead className="text-center">{t("questionnaire.laundry.properlyCleaned")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.laundry.returnedOnTime")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.laundry.freshNoOdor")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.laundry.ironingFoldingDone")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.laundry.issuesNoticed")}</TableHead>
+                              </>
+                            )}
+                            {!activeQType && <TableHead>{t("admin.questionnaireType")}</TableHead>}
                             <TableHead className="text-center">{t("feedback.overallExperience")}</TableHead>
                             <TableHead className="w-[40px]"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {pagedFeedbacks.map((fb, idx) => (
+                          {pagedFeedbacks.map((fb, idx) => {
+                            const qType = fb.questionnaire_type || "food";
+                            const overallRating = getOverallRating(fb);
+                            return (
                             <TableRow key={getId(fb)} className="hover:bg-muted/30 transition-colors">
                               <TableCell className="text-center text-xs text-muted-foreground">
                                 {(page - 1) * PAGE_SIZE + idx + 1}
@@ -389,22 +500,47 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                               <TableCell className="whitespace-nowrap text-xs">
                                 {format(new Date(fb.feedback_date), "dd MMM yyyy")}
                               </TableCell>
-                              <TableCell className="capitalize text-xs">
-                                {t(`feedback.${fb.meal_time}`)}
-                              </TableCell>
                               <TableCell className="text-xs max-w-[100px] truncate">
                                 {fb.place_name || "—"}
                               </TableCell>
-                              <TableCell className="text-center"><RatingDot rating={fb.food_temperature} /></TableCell>
-                              <TableCell className="text-center"><RatingDot rating={fb.food_taste} /></TableCell>
-                              <TableCell className="text-center"><RatingDot rating={fb.food_aroma} /></TableCell>
-                              <TableCell className="text-center"><RatingDot rating={fb.menu_variety} /></TableCell>
-                              <TableCell className="text-center"><RatingDot rating={fb.staff_attitude} /></TableCell>
-                              <TableCell className="text-center"><RatingDot rating={fb.service_time} /></TableCell>
-                              <TableCell className="text-center"><RatingDot rating={fb.cleanliness} /></TableCell>
+                              {(!activeQType || activeQType === "food") && activeQType !== "toilet" && activeQType !== "laundry" && (
+                                <>
+                                  {activeQType === "food" && <TableCell className="capitalize text-xs">{t(`feedback.${fb.meal_time}`)}</TableCell>}
+                                  {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.food_temperature} /></TableCell>}
+                                  {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.food_taste} /></TableCell>}
+                                  {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.food_aroma} /></TableCell>}
+                                  {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.menu_variety} /></TableCell>}
+                                  {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.staff_attitude} /></TableCell>}
+                                  {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.service_time} /></TableCell>}
+                                  {activeQType === "food" && <TableCell className="text-center"><RatingDot rating={fb.cleanliness} /></TableCell>}
+                                </>
+                              )}
+                              {activeQType === "toilet" && (
+                                <>
+                                  <TableCell className="text-center text-xs">{fb.toilet_clean_at_use ? t(`common.${fb.toilet_clean_at_use}`) : "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.toilet_supplies_available ? t(`common.${fb.toilet_supplies_available}`) : "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.toilet_unpleasant_smell ? t(`common.${fb.toilet_unpleasant_smell}`) : "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.toilet_area_needs_cleaning || "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.toilet_cleaned_frequently ? t(`common.${fb.toilet_cleaned_frequently === "not_sure" ? "notSure" : fb.toilet_cleaned_frequently}`) : "—"}</TableCell>
+                                </>
+                              )}
+                              {activeQType === "laundry" && (
+                                <>
+                                  <TableCell className="text-center text-xs">{fb.laundry_properly_cleaned ? t(`common.${fb.laundry_properly_cleaned}`) : "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.laundry_returned_on_time ? t(`common.${fb.laundry_returned_on_time}`) : "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.laundry_fresh_no_odor ? t(`common.${fb.laundry_fresh_no_odor}`) : "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.laundry_ironing_folding || "—"}</TableCell>
+                                  <TableCell className="text-center text-xs">{fb.laundry_issues || "—"}</TableCell>
+                                </>
+                              )}
+                              {!activeQType && (
+                                <TableCell className="text-xs">
+                                  <Badge variant="outline" className="text-[10px]">{t(`questionnaire.${qType}.name`)}</Badge>
+                                </TableCell>
+                              )}
                               <TableCell className="text-center">
-                                <Badge className={`${ratingBadge[fb.overall_experience]} text-[10px] px-2`}>
-                                  {formatRating(fb.overall_experience)}
+                                <Badge className={`${ratingBadge[overallRating] || ""} text-[10px] px-2`}>
+                                  {overallRating ? formatRating(overallRating) : "—"}
                                 </Badge>
                               </TableCell>
                               <TableCell>
@@ -413,7 +549,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                                 </Button>
                               </TableCell>
                             </TableRow>
-                          ))}
+                          );})}
                         </TableBody>
                       </Table>
                     </div>
@@ -475,57 +611,103 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
       {/* ─── Detail Dialog ─── */}
       <Dialog open={!!detailFeedback} onOpenChange={() => setDetailFeedback(null)}>
         <DialogContent className="max-w-lg">
-          {detailFeedback && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  {t(`feedback.${detailFeedback.meal_time}`)} — {format(new Date(detailFeedback.feedback_date), "dd MMM yyyy")}
-                  {detailFeedback.place_name && <Badge variant="outline" className="text-xs">{detailFeedback.place_name}</Badge>}
-                </DialogTitle>
-              </DialogHeader>
+          {detailFeedback && (() => {
+            const qType = (detailFeedback.questionnaire_type || "food") as QuestionnaireType;
+            const config = getQuestionnaire(qType);
+            const overallRating = (detailFeedback[config.overallRatingField] as string) || "";
+            const suggestions = getSuggestions(detailFeedback);
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 flex-wrap">
+                    {qType === "food" && detailFeedback.meal_time && `${t(`feedback.${detailFeedback.meal_time}`)} — `}
+                    {format(new Date(detailFeedback.feedback_date), "dd MMM yyyy")}
+                    {detailFeedback.place_name && <Badge variant="outline" className="text-xs">{detailFeedback.place_name}</Badge>}
+                    <Badge variant="secondary" className="text-xs">{t(config.nameKey)}</Badge>
+                  </DialogTitle>
+                </DialogHeader>
 
-              <div className="space-y-4 mt-2">
-                {/* Food & Menu */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 text-foreground">{t("admin.foodMenu")}</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <DetailRow label={t("admin.temperature")} value={detailFeedback.food_temperature} />
-                    <DetailRow label={t("admin.taste")} value={detailFeedback.food_taste} />
-                    <DetailRow label={t("admin.aroma")} value={detailFeedback.food_aroma} />
-                    <DetailRow label={t("admin.variety")} value={detailFeedback.menu_variety} />
+                <div className="space-y-4 mt-2">
+                  {/* Food-specific sections */}
+                  {qType === "food" && (
+                    <>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("admin.foodMenu")}</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <DetailRow label={t("admin.temperature")} value={detailFeedback.food_temperature} />
+                          <DetailRow label={t("admin.taste")} value={detailFeedback.food_taste} />
+                          <DetailRow label={t("admin.aroma")} value={detailFeedback.food_aroma} />
+                          <DetailRow label={t("admin.variety")} value={detailFeedback.menu_variety} />
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("admin.service")}</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <DetailRow label={t("admin.staff")} value={detailFeedback.staff_attitude} />
+                          <DetailRow label={t("admin.time")} value={detailFeedback.service_time} />
+                          <DetailRow label={t("admin.clean")} value={detailFeedback.cleanliness} />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Toilet-specific sections */}
+                  {qType === "toilet" && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.toilet.cleanlinessQuestions")}</h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        <DetailRowText label={t("questionnaire.toilet.cleanAtUse")} value={detailFeedback.toilet_clean_at_use === "yes" ? t("common.yes") : t("common.no")} />
+                        <DetailRowText label={t("questionnaire.toilet.suppliesAvailable")} value={detailFeedback.toilet_supplies_available === "yes" ? t("common.yes") : t("common.no")} />
+                        <DetailRowText label={t("questionnaire.toilet.unpleasantSmell")} value={detailFeedback.toilet_unpleasant_smell === "yes" ? t("common.yes") : t("common.no")} />
+                        <DetailRowText label={t("questionnaire.toilet.areaNeedsCleaning")} value={detailFeedback.toilet_area_needs_cleaning || "—"} />
+                        <DetailRowText label={t("questionnaire.toilet.cleanedFrequently")} value={
+                          detailFeedback.toilet_cleaned_frequently === "yes" ? t("common.yes") :
+                          detailFeedback.toilet_cleaned_frequently === "no" ? t("common.no") :
+                          t("common.notSure")
+                        } />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Laundry-specific sections */}
+                  {qType === "laundry" && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.laundry.serviceQuestions")}</h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        <DetailRowText label={t("questionnaire.laundry.properlyCleaned")} value={detailFeedback.laundry_properly_cleaned === "yes" ? t("common.yes") : t("common.no")} />
+                        <DetailRowText label={t("questionnaire.laundry.returnedOnTime")} value={detailFeedback.laundry_returned_on_time === "yes" ? t("common.yes") : t("common.no")} />
+                        <DetailRowText label={t("questionnaire.laundry.freshNoOdor")} value={detailFeedback.laundry_fresh_no_odor === "yes" ? t("common.yes") : t("common.no")} />
+                        <DetailRowText label={t("questionnaire.laundry.ironingFoldingDone")} value={
+                          detailFeedback.laundry_ironing_folding === "yes" ? t("common.yes") :
+                          detailFeedback.laundry_ironing_folding === "no" ? t("common.no") :
+                          t("common.notApplicable")
+                        } />
+                        <DetailRowText label={t("questionnaire.laundry.issuesNoticed")} value={detailFeedback.laundry_issues || "—"} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Overall */}
+                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+                    <span className="text-sm font-medium">{t("feedback.overallExperience")}</span>
+                    <Badge className={`${ratingBadge[overallRating] || ""} text-xs`}>
+                      {overallRating ? formatRating(overallRating) : "—"}
+                    </Badge>
                   </div>
-                </div>
 
-                {/* Service */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 text-foreground">{t("admin.service")}</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <DetailRow label={t("admin.staff")} value={detailFeedback.staff_attitude} />
-                    <DetailRow label={t("admin.time")} value={detailFeedback.service_time} />
-                    <DetailRow label={t("admin.clean")} value={detailFeedback.cleanliness} />
-                  </div>
+                  {/* Suggestions */}
+                  {suggestions && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">{t("feedback.suggestions")}</h4>
+                      <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md whitespace-pre-wrap">
+                        {suggestions}
+                      </p>
+                    </div>
+                  )}
                 </div>
-
-                {/* Overall */}
-                <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
-                  <span className="text-sm font-medium">{t("feedback.overallExperience")}</span>
-                  <Badge className={`${ratingBadge[detailFeedback.overall_experience]} text-xs`}>
-                    {formatRating(detailFeedback.overall_experience)}
-                  </Badge>
-                </div>
-
-                {/* Suggestions */}
-                {detailFeedback.suggestions && (
-                  <div>
-                    <h4 className="text-sm font-semibold mb-2">{t("feedback.suggestions")}</h4>
-                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md whitespace-pre-wrap">
-                      {detailFeedback.suggestions}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
@@ -543,7 +725,7 @@ const RatingDot = ({ rating }: { rating: string }) => {
   );
 };
 
-/* ── Detail row in the dialog ── */
+/* ── Detail row in the dialog (for rating badges) ── */
 const DetailRow = ({ label, value }: { label: string; value: string }) => {
   const { t } = useTranslation();
   return (
@@ -552,6 +734,16 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => {
       <Badge className={`${ratingBadge[value] || ""} text-[10px] px-1.5`}>
         {t(`ratings.${value}`)}
       </Badge>
+    </div>
+  );
+};
+
+/* ── Detail row for text values (yes/no, etc.) ── */
+const DetailRowText = ({ label, value }: { label: string; value: string }) => {
+  return (
+    <div className="flex items-center justify-between text-sm bg-muted/30 rounded px-2 py-1.5">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <span className="text-xs font-medium">{value}</span>
     </div>
   );
 };

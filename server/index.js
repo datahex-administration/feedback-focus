@@ -23,7 +23,7 @@ const getPlacesCollection = () => getDB().collection('places');
 // Create a new place
 app.post('/api/places', async (req, res) => {
   try {
-    const { name, name_ar, address, address_ar } = req.body;
+    const { name, name_ar, address, address_ar, questionnaire_type } = req.body;
     if (!name) return res.status(400).json({ error: 'Place name is required' });
 
     const slug = crypto.randomBytes(6).toString('hex');
@@ -32,6 +32,7 @@ app.post('/api/places', async (req, res) => {
       name_ar: name_ar || '',
       address: address || '',
       address_ar: address_ar || '',
+      questionnaire_type: questionnaire_type || 'food',
       slug,
       active: true,
       created_at: new Date(),
@@ -76,13 +77,14 @@ app.get('/api/places/slug/:slug', async (req, res) => {
 app.put('/api/places/:id', async (req, res) => {
   try {
     const { ObjectId } = (await import('mongodb'));
-    const { name, name_ar, address, address_ar, active } = req.body;
+    const { name, name_ar, address, address_ar, active, questionnaire_type } = req.body;
     const update = {
       ...(name !== undefined && { name }),
       ...(name_ar !== undefined && { name_ar }),
       ...(address !== undefined && { address }),
       ...(address_ar !== undefined && { address_ar }),
       ...(active !== undefined && { active }),
+      ...(questionnaire_type !== undefined && { questionnaire_type }),
       updated_at: new Date(),
     };
     await getPlacesCollection().updateOne({ _id: new ObjectId(req.params.id) }, { $set: update });
@@ -107,18 +109,20 @@ app.delete('/api/places/:id', async (req, res) => {
 
 // ─── FEEDBACK ───
 
-// Submit feedback (now with place_slug)
+// Submit feedback (now with place_slug and questionnaire_type)
 app.post('/api/feedback', async (req, res) => {
   try {
-    const { place_slug, ...rest } = req.body;
+    const { place_slug, questionnaire_type, ...rest } = req.body;
 
     let place_name = '';
     let place_id = null;
+    let resolved_questionnaire_type = questionnaire_type || 'food';
     if (place_slug) {
       const place = await getPlacesCollection().findOne({ slug: place_slug, active: true });
       if (place) {
         place_name = place.name;
         place_id = place._id;
+        resolved_questionnaire_type = place.questionnaire_type || questionnaire_type || 'food';
       }
     }
 
@@ -127,6 +131,7 @@ app.post('/api/feedback', async (req, res) => {
       place_slug: place_slug || null,
       place_name: place_name || null,
       place_id: place_id || null,
+      questionnaire_type: resolved_questionnaire_type,
       created_at: new Date(),
       feedback_date: rest.feedback_date || new Date().toISOString().split('T')[0],
     };
@@ -142,12 +147,15 @@ app.post('/api/feedback', async (req, res) => {
 // Get feedback with filters
 app.get('/api/feedback', async (req, res) => {
   try {
-    const { place_slug, meal_time, from_date, to_date, rating } = req.query;
+    const { place_slug, meal_time, from_date, to_date, rating, questionnaire_type } = req.query;
     const filter = {};
 
     if (place_slug) filter.place_slug = place_slug;
     if (meal_time) filter.meal_time = meal_time;
     if (rating) filter.overall_experience = rating;
+    if (questionnaire_type) {
+      filter.questionnaire_type = questionnaire_type;
+    }
 
     if (from_date || to_date) {
       filter.feedback_date = {};
@@ -170,10 +178,22 @@ app.get('/api/feedback', async (req, res) => {
 // Get feedback stats/analytics
 app.get('/api/feedback/stats', async (req, res) => {
   try {
-    const { place_slug, from_date, to_date } = req.query;
+    const { place_slug, from_date, to_date, questionnaire_type } = req.query;
     const filter = {};
 
     if (place_slug) filter.place_slug = place_slug;
+    if (questionnaire_type) {
+      if (questionnaire_type === 'food') {
+        // Backward compat: food includes docs without questionnaire_type
+        filter.$or = [
+          { questionnaire_type: 'food' },
+          { questionnaire_type: { $exists: false } },
+          { questionnaire_type: null },
+        ];
+      } else {
+        filter.questionnaire_type = questionnaire_type;
+      }
+    }
     if (from_date || to_date) {
       filter.feedback_date = {};
       if (from_date) filter.feedback_date.$gte = from_date;
@@ -184,37 +204,74 @@ app.get('/api/feedback/stats', async (req, res) => {
     const total = feedbacks.length;
 
     if (total === 0) {
-      return res.json({ total: 0, byRating: {}, byMealTime: {}, byCategory: {}, byDate: [] });
+      return res.json({ total: 0, byRating: {}, byMealTime: {}, byCategory: {}, byField: {}, byDate: [] });
     }
 
-    // Count by overall rating
-    const byRating = {};
-    const byMealTime = {};
+    const qType = questionnaire_type || 'food';
+
+    // Common: date aggregation
     const byDate = {};
-    const categories = ['food_temperature', 'food_taste', 'food_aroma', 'menu_variety', 'staff_attitude', 'service_time', 'cleanliness'];
-    const byCategory = {};
-    categories.forEach(c => { byCategory[c] = { excellent: 0, very_good: 0, good: 0, average: 0, dissatisfied: 0 }; });
-
     feedbacks.forEach(fb => {
-      // By rating
-      byRating[fb.overall_experience] = (byRating[fb.overall_experience] || 0) + 1;
-      // By meal time
-      byMealTime[fb.meal_time] = (byMealTime[fb.meal_time] || 0) + 1;
-      // By date
       byDate[fb.feedback_date] = (byDate[fb.feedback_date] || 0) + 1;
-      // By category
-      categories.forEach(c => {
-        if (fb[c] && byCategory[c][fb[c]] !== undefined) {
-          byCategory[c][fb[c]]++;
-        }
-      });
     });
-
     const byDateArray = Object.entries(byDate)
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    res.json({ total, byRating, byMealTime, byCategory, byDate: byDateArray });
+    // Overall rating field depends on questionnaire type
+    const overallRatingFieldMap = {
+      food: 'overall_experience',
+      toilet: 'toilet_overall_cleanliness',
+      laundry: 'laundry_overall_service',
+    };
+    const overallField = overallRatingFieldMap[qType] || 'overall_experience';
+
+    // Count by overall rating
+    const byRating = {};
+    feedbacks.forEach(fb => {
+      const val = fb[overallField];
+      if (val) byRating[val] = (byRating[val] || 0) + 1;
+    });
+
+    if (qType === 'food') {
+      // Food-specific aggregations
+      const byMealTime = {};
+      const categories = ['food_temperature', 'food_taste', 'food_aroma', 'menu_variety', 'staff_attitude', 'service_time', 'cleanliness'];
+      const byCategory = {};
+      categories.forEach(c => { byCategory[c] = { excellent: 0, very_good: 0, good: 0, average: 0, dissatisfied: 0 }; });
+
+      feedbacks.forEach(fb => {
+        byMealTime[fb.meal_time] = (byMealTime[fb.meal_time] || 0) + 1;
+        categories.forEach(c => {
+          if (fb[c] && byCategory[c][fb[c]] !== undefined) {
+            byCategory[c][fb[c]]++;
+          }
+        });
+      });
+
+      return res.json({ total, byRating, byMealTime, byCategory, byDate: byDateArray });
+    }
+
+    // Toilet & Laundry: aggregate radio/choice fields
+    const radioFieldsMap = {
+      toilet: ['toilet_clean_at_use', 'toilet_supplies_available', 'toilet_unpleasant_smell', 'toilet_area_needs_cleaning', 'toilet_cleaned_frequently'],
+      laundry: ['laundry_properly_cleaned', 'laundry_returned_on_time', 'laundry_fresh_no_odor', 'laundry_ironing_folding', 'laundry_issues'],
+    };
+
+    const radioFields = radioFieldsMap[qType] || [];
+    const byField = {};
+    radioFields.forEach(f => { byField[f] = {}; });
+
+    feedbacks.forEach(fb => {
+      radioFields.forEach(f => {
+        const val = fb[f];
+        if (val) {
+          byField[f][val] = (byField[f][val] || 0) + 1;
+        }
+      });
+    });
+
+    res.json({ total, byRating, byField, byDate: byDateArray });
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Failed to fetch stats' });

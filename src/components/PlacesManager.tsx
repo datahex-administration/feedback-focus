@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { QUESTIONNAIRE_OPTIONS, type QuestionnaireType } from "@/lib/questionnaires";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -22,6 +24,7 @@ interface Place {
   slug: string;
   active: boolean;
   created_at: string;
+  questionnaire_type?: QuestionnaireType;
 }
 
 const PlacesManager = () => {
@@ -30,7 +33,7 @@ const PlacesManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
-  const [form, setForm] = useState({ name: "", name_ar: "", address: "", address_ar: "" });
+  const [form, setForm] = useState({ name: "", name_ar: "", address: "", address_ar: "", questionnaire_type: "food" as QuestionnaireType });
   const qrRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isArabic = i18n.language === "ar";
@@ -70,7 +73,7 @@ const PlacesManager = () => {
         });
         toast.success(t("admin.placeCreated"));
       }
-      setForm({ name: "", name_ar: "", address: "", address_ar: "" });
+      setForm({ name: "", name_ar: "", address: "", address_ar: "", questionnaire_type: "food" });
       setShowAddDialog(false);
       setEditingPlace(null);
       fetchPlaces();
@@ -132,13 +135,13 @@ const PlacesManager = () => {
 
   const openEdit = (place: Place) => {
     setEditingPlace(place);
-    setForm({ name: place.name, name_ar: place.name_ar, address: place.address, address_ar: place.address_ar });
+    setForm({ name: place.name, name_ar: place.name_ar, address: place.address, address_ar: place.address_ar, questionnaire_type: place.questionnaire_type || "food" });
     setShowAddDialog(true);
   };
 
   const openAdd = () => {
     setEditingPlace(null);
-    setForm({ name: "", name_ar: "", address: "", address_ar: "" });
+    setForm({ name: "", name_ar: "", address: "", address_ar: "", questionnaire_type: "food" });
     setShowAddDialog(true);
   };
 
@@ -173,6 +176,17 @@ const PlacesManager = () => {
               <div>
                 <Label>{t("admin.addressAr")}</Label>
                 <Input value={form.address_ar} onChange={(e) => setForm({ ...form, address_ar: e.target.value })} placeholder="123 الشارع الرئيسي" dir="rtl" />
+              </div>
+              <div>
+                <Label>{t("admin.questionnaire")}</Label>
+                <Select value={form.questionnaire_type} onValueChange={(v) => setForm({ ...form, questionnaire_type: v as QuestionnaireType })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {QUESTIONNAIRE_OPTIONS.map((q) => (
+                      <SelectItem key={q.value} value={q.value}>{t(q.labelKey)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setShowAddDialog(false)}>{t("admin.cancel")}</Button>
@@ -212,6 +226,9 @@ const PlacesManager = () => {
                       </h3>
                       <Badge variant={place.active ? "default" : "secondary"} className="text-[10px]">
                         {place.active ? t("admin.active") : t("admin.inactive")}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px]">
+                        {t(`questionnaire.${place.questionnaire_type || "food"}.name`)}
                       </Badge>
                     </div>
                     {(isArabic ? place.address_ar : place.address) && (

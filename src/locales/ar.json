@@ -1,4 +1,53 @@
 {
+  "common": {
+    "yes": "نعم",
+    "no": "لا",
+    "notSure": "غير متأكد",
+    "notApplicable": "لا ينطبق"
+  },
+  "questionnaire": {
+    "food": {
+      "name": "تقييم الطعام"
+    },
+    "toilet": {
+      "name": "تقييم نظافة دورة المياه",
+      "welcome": "تقييم نظافة دورة المياه",
+      "subtitle": "ساعدنا في الحفاظ على معايير النظافة",
+      "overallCleanliness": "التقييم العام للنظافة",
+      "cleanlinessQuestions": "أسئلة النظافة",
+      "cleanAtUse": "هل كانت دورة المياه نظيفة وقت الاستخدام؟",
+      "suppliesAvailable": "هل كانت المستلزمات الأساسية متوفرة (ورق تواليت، صابون، ماء)؟",
+      "unpleasantSmell": "هل لاحظت أي رائحة كريهة؟",
+      "areaNeedsCleaningTitle": "المنطقة التي تحتاج اهتماماً",
+      "areaNeedsCleaning": "أي منطقة كانت تحتاج للتنظيف أكثر؟",
+      "toiletSeat": "مقعد المرحاض",
+      "floor": "الأرضية",
+      "washBasin": "حوض الغسيل",
+      "noneOption": "لا شيء",
+      "cleaningFrequency": "تكرار التنظيف",
+      "cleanedFrequently": "هل تم تنظيف دورة المياه بشكل متكرر كافٍ؟",
+      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين النظافة..."
+    },
+    "laundry": {
+      "name": "تقييم خدمة الغسيل",
+      "welcome": "تقييم خدمة الغسيل",
+      "subtitle": "ساعدنا في تحسين خدمة الغسيل",
+      "overallService": "التقييم العام لخدمة الغسيل",
+      "serviceQuestions": "جودة الخدمة",
+      "properlyCleaned": "هل تم تنظيف ملابسك بشكل صحيح؟",
+      "returnedOnTime": "هل تم إرجاع ملابسك في الوقت المحدد؟",
+      "freshNoOdor": "هل كانت ملابسك نظيفة وخالية من الروائح الكريهة؟",
+      "ironingFolding": "الكي والطي",
+      "ironingFoldingDone": "هل تم الكي/الطي بشكل صحيح؟",
+      "issuesTitle": "المشاكل الملاحظة",
+      "issuesNoticed": "هل لاحظت أي مشكلة؟",
+      "clothesDamaged": "ملابس تالفة",
+      "stainsNotRemoved": "بقع لم تُزَل",
+      "missingItems": "أغراض مفقودة",
+      "noIssues": "لا مشاكل",
+      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين خدمة الغسيل..."
+    }
+  },
   "nav": {
     "home": "الرئيسية",
     "admin": "المشرف"
@@ -36,7 +85,9 @@
     "very_good": "جيد جداً",
     "good": "جيد",
     "average": "متوسط",
-    "dissatisfied": "غير راضٍ"
+    "dissatisfied": "غير راضٍ",
+    "poor": "ضعيف",
+    "very_poor": "ضعيف جداً"
   },
   "admin": {
     "dashboard": "لوحة التحكم",
@@ -71,6 +122,10 @@
     "placeNameAr": "اسم المكان (عربي)",
     "address": "العنوان",
     "addressAr": "العنوان (عربي)",
+    "questionnaire": "الاستبيان",
+    "selectQuestionnaire": "اختر الاستبيان",
+    "allQuestionnaires": "جميع الاستبيانات",
+    "questionnaireType": "نوع الاستبيان",
     "save": "حفظ",
     "cancel": "إلغاء",
     "delete": "حذف",
@@ -98,7 +153,18 @@
     "confirmDelete": "هل أنت متأكد من حذف هذا المكان؟",
     "showing": "عرض",
     "results": "نتيجة",
-    "exportSuccess": "تم تصدير البيانات بنجاح!"
+    "exportSuccess": "تم تصدير البيانات بنجاح!",
+    "responseBreakdown": "تفصيل الردود",
+    "yesNoDistribution": "توزيع نعم / لا",
+    "fieldDistribution": "توزيع الردود",
+    "totalResponses": "إجمالي الردود",
+    "satisfactionRate": "معدل الرضا",
+    "qualityRadar": "رادار الجودة",
+    "avgScore": "متوسط التقييم",
+    "bestCategory": "أفضل فئة",
+    "needsAttention": "تحتاج اهتماماً",
+    "categoryScoresSummary": "ملخص تقييمات الفئات",
+    "dailyVolume": "حجم التقييمات اليومية"
   },
   "thankyou": {
     "title": "شكراً لك!",
@@ -108,6 +174,7 @@
   "toast": {
     "selectMealTime": "الرجاء اختيار وقت الوجبة",
     "completeRatings": "الرجاء إكمال جميع التقييمات",
+    "completeAllFields": "الرجاء إكمال جميع الحقول المطلوبة",
     "thankYou": "شكراً لك على تقييمك!",
     "submitError": "فشل إرسال التقييم. الرجاء المحاولة مرة أخرى.",
     "welcomeAdmin": "مرحباً، المشرف!",
