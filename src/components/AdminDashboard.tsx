@@ -65,18 +65,16 @@ interface Feedback {
   /* school canteen fields */
   sc_school?: string;
   school_name?: string;
-  sc_food_taste?: string;
-  sc_food_temperature?: string;
+  sc_hygiene_cleanliness?: string;
+  sc_hygiene_comments?: string;
+  sc_staff_hygiene?: string;
+  sc_staff_hygiene_comments?: string;
+  sc_employee_behavior?: string;
+  sc_behavior_comments?: string;
+  sc_food_quality?: string;
+  sc_food_quality_comments?: string;
   sc_food_freshness?: string;
-  sc_food_variety?: string;
-  sc_portion_size?: string;
-  sc_kitchen_cleanliness?: string;
-  sc_dining_area?: string;
-  sc_food_handling?: string;
-  sc_staff_behavior?: string;
-  sc_waiting_time?: string;
-  sc_serving_quality?: string;
-  sc_overall?: string;
+  sc_freshness_comments?: string;
   sc_suggestions?: string;
   [key: string]: unknown;
 }
@@ -100,6 +98,17 @@ const ratingBadge: Record<string, string> = {
   good: "bg-amber-500 text-white",
   average: "bg-orange-500 text-white",
   dissatisfied: "bg-red-500 text-white",
+  poor: "bg-red-500 text-white",
+  always: "bg-emerald-500 text-white",
+  most_of_the_time: "bg-blue-500 text-white",
+  sometimes: "bg-orange-500 text-white",
+  not_at_all: "bg-red-500 text-white",
+  very_friendly: "bg-emerald-500 text-white",
+  needs_improvement: "bg-red-500 text-white",
+  very_fresh: "bg-emerald-500 text-white",
+  fresh: "bg-blue-500 text-white",
+  acceptable: "bg-orange-500 text-white",
+  not_fresh: "bg-red-500 text-white",
 };
 
 const ratingDot: Record<string, string> = {
@@ -108,6 +117,17 @@ const ratingDot: Record<string, string> = {
   good: "bg-amber-500",
   average: "bg-orange-500",
   dissatisfied: "bg-red-500",
+  poor: "bg-red-500",
+  always: "bg-emerald-500",
+  most_of_the_time: "bg-blue-500",
+  sometimes: "bg-orange-500",
+  not_at_all: "bg-red-500",
+  very_friendly: "bg-emerald-500",
+  needs_improvement: "bg-red-500",
+  very_fresh: "bg-emerald-500",
+  fresh: "bg-blue-500",
+  acceptable: "bg-orange-500",
+  not_fresh: "bg-red-500",
 };
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -175,10 +195,10 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
     setFilterRating("all");
     setFilterFromDate("");
     setFilterToDate("");
-    setFilterQuestionnaire("all");
+    setFilterQuestionnaire(isSchoolMode ? "school_canteen" : "all");
   };
   const hasActiveFilters =
-    filterPlace !== "all" || filterMeal !== "all" || filterRating !== "all" || filterFromDate || filterToDate || filterQuestionnaire !== "all";
+    filterPlace !== "all" || filterMeal !== "all" || filterRating !== "all" || filterFromDate || filterToDate || filterQuestionnaire !== (isSchoolMode ? "school_canteen" : "all");
 
   /* Helper: get the overall rating field value for any feedback */
   const getOverallRating = (fb: Feedback): string => {
@@ -258,18 +278,16 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
       } else if (qType === "school_canteen") {
         Object.assign(base, {
           "School": f.school_name || "",
-          "Food Taste": f.sc_food_taste || "",
-          "Food Temperature": f.sc_food_temperature || "",
+          "Hygiene & Cleanliness": f.sc_hygiene_cleanliness || "",
+          "Hygiene Comments": f.sc_hygiene_comments || "",
+          "Staff Hygiene Compliance": f.sc_staff_hygiene || "",
+          "Staff Hygiene Comments": f.sc_staff_hygiene_comments || "",
+          "Employee Behavior": f.sc_employee_behavior || "",
+          "Behavior Comments": f.sc_behavior_comments || "",
+          "Food Quality": f.sc_food_quality || "",
+          "Food Quality Comments": f.sc_food_quality_comments || "",
           "Food Freshness": f.sc_food_freshness || "",
-          "Food Variety": f.sc_food_variety || "",
-          "Portion Size": f.sc_portion_size || "",
-          "Kitchen Cleanliness": f.sc_kitchen_cleanliness || "",
-          "Dining Area": f.sc_dining_area || "",
-          "Food Handling": f.sc_food_handling || "",
-          "Staff Behavior": f.sc_staff_behavior || "",
-          "Waiting Time": f.sc_waiting_time || "",
-          "Serving Quality": f.sc_serving_quality || "",
-          "Overall": f.sc_overall || "",
+          "Freshness Comments": f.sc_freshness_comments || "",
           Suggestions: f.sc_suggestions || "",
         });
       }
@@ -506,10 +524,11 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                             {activeQType === "school_canteen" && (
                               <>
                                 <TableHead>{t("admin.schoolName")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.school_canteen.foodTaste")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.school_canteen.foodTemperature")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.school_canteen.kitchenCleanliness")}</TableHead>
-                                <TableHead className="text-center">{t("questionnaire.school_canteen.staffBehavior")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.hygieneCleanliness")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.staffHygieneCompliance")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.employeeBehavior")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.foodQuality")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.foodFreshness")}</TableHead>
                               </>
                             )}
                             {!activeQType && <TableHead>{t("admin.questionnaireType")}</TableHead>}
@@ -556,10 +575,11 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                               {activeQType === "school_canteen" && (
                                 <>
                                   <TableCell className="text-xs max-w-[120px] truncate">{fb.school_name || "—"}</TableCell>
-                                  <TableCell className="text-center"><RatingDot rating={fb.sc_food_taste || ""} /></TableCell>
-                                  <TableCell className="text-center"><RatingDot rating={fb.sc_food_temperature || ""} /></TableCell>
-                                  <TableCell className="text-center"><RatingDot rating={fb.sc_kitchen_cleanliness || ""} /></TableCell>
-                                  <TableCell className="text-center"><RatingDot rating={fb.sc_staff_behavior || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_hygiene_cleanliness || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_staff_hygiene || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_employee_behavior || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_food_quality || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_food_freshness || ""} /></TableCell>
                                 </>
                               )}
                               {!activeQType && (
@@ -724,29 +744,38 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                         </div>
                       )}
                       <div>
-                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.foodQuality")}</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          <DetailRow label={t("questionnaire.school_canteen.foodTaste")} value={detailFeedback.sc_food_taste || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.foodTemperature")} value={detailFeedback.sc_food_temperature || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.foodFreshness")} value={detailFeedback.sc_food_freshness || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.foodVariety")} value={detailFeedback.sc_food_variety || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.portionSize")} value={detailFeedback.sc_portion_size || ""} />
-                        </div>
-                      </div>
-                      <div>
                         <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.hygieneCleanliness")}</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          <DetailRow label={t("questionnaire.school_canteen.kitchenCleanliness")} value={detailFeedback.sc_kitchen_cleanliness || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.diningArea")} value={detailFeedback.sc_dining_area || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.foodHandling")} value={detailFeedback.sc_food_handling || ""} />
+                        <div className="grid grid-cols-1 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.hygieneQuestion")} value={detailFeedback.sc_hygiene_cleanliness || ""} />
+                          {detailFeedback.sc_hygiene_comments && <DetailRowText label={t("questionnaire.school_canteen.commentsPlaceholder")} value={detailFeedback.sc_hygiene_comments} />}
                         </div>
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.serviceSection")}</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          <DetailRow label={t("questionnaire.school_canteen.staffBehavior")} value={detailFeedback.sc_staff_behavior || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.waitingTime")} value={detailFeedback.sc_waiting_time || ""} />
-                          <DetailRow label={t("questionnaire.school_canteen.servingQuality")} value={detailFeedback.sc_serving_quality || ""} />
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.staffHygieneCompliance")}</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.staffHygieneQuestion")} value={detailFeedback.sc_staff_hygiene || ""} />
+                          {detailFeedback.sc_staff_hygiene_comments && <DetailRowText label={t("questionnaire.school_canteen.commentsPlaceholder")} value={detailFeedback.sc_staff_hygiene_comments} />}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.employeeBehavior")}</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.employeeBehaviorQuestion")} value={detailFeedback.sc_employee_behavior || ""} />
+                          {detailFeedback.sc_behavior_comments && <DetailRowText label={t("questionnaire.school_canteen.commentsPlaceholder")} value={detailFeedback.sc_behavior_comments} />}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.foodQuality")}</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.foodQualityQuestion")} value={detailFeedback.sc_food_quality || ""} />
+                          {detailFeedback.sc_food_quality_comments && <DetailRowText label={t("questionnaire.school_canteen.commentsPlaceholder")} value={detailFeedback.sc_food_quality_comments} />}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.foodFreshness")}</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.foodFreshnessQuestion")} value={detailFeedback.sc_food_freshness || ""} />
+                          {detailFeedback.sc_freshness_comments && <DetailRowText label={t("questionnaire.school_canteen.commentsPlaceholder")} value={detailFeedback.sc_freshness_comments} />}
                         </div>
                       </div>
                     </>

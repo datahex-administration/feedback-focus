@@ -44,9 +44,8 @@ const FOOD_CATEGORY_FIELDS = [
 ];
 
 const SCHOOL_CANTEEN_CATEGORY_FIELDS = [
-  "sc_food_taste", "sc_food_temperature", "sc_food_freshness", "sc_food_variety", "sc_portion_size",
-  "sc_kitchen_cleanliness", "sc_dining_area", "sc_food_handling",
-  "sc_staff_behavior", "sc_waiting_time", "sc_serving_quality",
+  "sc_hygiene_cleanliness", "sc_staff_hygiene", "sc_employee_behavior",
+  "sc_food_quality", "sc_food_freshness",
 ];
 
 const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
@@ -125,17 +124,11 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
   };
 
   const schoolCanteenCategoryLabels: Record<string, string> = {
-    sc_food_taste: t("questionnaire.school_canteen.foodTaste"),
-    sc_food_temperature: t("questionnaire.school_canteen.foodTemperature"),
+    sc_hygiene_cleanliness: t("questionnaire.school_canteen.hygieneCleanliness"),
+    sc_staff_hygiene: t("questionnaire.school_canteen.staffHygieneCompliance"),
+    sc_employee_behavior: t("questionnaire.school_canteen.employeeBehavior"),
+    sc_food_quality: t("questionnaire.school_canteen.foodQuality"),
     sc_food_freshness: t("questionnaire.school_canteen.foodFreshness"),
-    sc_food_variety: t("questionnaire.school_canteen.foodVariety"),
-    sc_portion_size: t("questionnaire.school_canteen.portionSize"),
-    sc_kitchen_cleanliness: t("questionnaire.school_canteen.kitchenCleanliness"),
-    sc_dining_area: t("questionnaire.school_canteen.diningArea"),
-    sc_food_handling: t("questionnaire.school_canteen.foodHandling"),
-    sc_staff_behavior: t("questionnaire.school_canteen.staffBehavior"),
-    sc_waiting_time: t("questionnaire.school_canteen.waitingTime"),
-    sc_serving_quality: t("questionnaire.school_canteen.servingQuality"),
   };
 
   const activeCategoryFields = selectedQuestionnaire === "food" ? FOOD_CATEGORY_FIELDS
