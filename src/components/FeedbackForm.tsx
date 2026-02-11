@@ -1,14 +1,24 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { Send } from "lucide-react";
+import { Send, Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "sonner";
 import RatingGrid from "./RatingGrid";
 import { cn } from "@/lib/utils";
@@ -49,6 +59,7 @@ const FeedbackForm = ({
 
   const [values, setValues] = useState<Record<string, string>>(buildInitialValues);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [schoolSelectOpen, setSchoolSelectOpen] = useState(false);
 
   const handleValueChange = (fieldId: string, value: string) => {
     setValues((prev) => ({ ...prev, [fieldId]: value }));
@@ -133,23 +144,57 @@ const FeedbackForm = ({
 
   const renderSchoolSelectField = (field: QuestionField) => {
     const schools = getActiveSchools();
+    const selectedSchool = schools.find((s) => s.id === values[field.id]);
+    
     return (
       <div className="space-y-2">
-        <Select
-          value={values[field.id] || ""}
-          onValueChange={(v) => handleValueChange(field.id, v)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={t(field.labelKey)} />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            {schools.map((school) => (
-              <SelectItem key={school.id} value={school.id}>
-                {getSchoolDisplayName(school, i18n.language)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover open={schoolSelectOpen} onOpenChange={setSchoolSelectOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={schoolSelectOpen}
+              className="w-full justify-between h-10 font-normal"
+            >
+              {selectedSchool
+                ? getSchoolDisplayName(selectedSchool, i18n.language)
+                : t(field.labelKey)}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+            <Command>
+              <CommandInput 
+                placeholder={i18n.language === "ar" ? "ابحث عن المدرسة..." : "Search school..."} 
+              />
+              <CommandList>
+                <CommandEmpty>
+                  {i18n.language === "ar" ? "لم يتم العثور على مدرسة" : "No school found"}
+                </CommandEmpty>
+                <CommandGroup>
+                  {schools.map((school) => (
+                    <CommandItem
+                      key={school.id}
+                      value={`${school.nameEn} ${school.nameAr}`}
+                      onSelect={() => {
+                        handleValueChange(field.id, school.id);
+                        setSchoolSelectOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          values[field.id] === school.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {getSchoolDisplayName(school, i18n.language)}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
     );
   };
