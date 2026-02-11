@@ -222,6 +222,7 @@ app.get('/api/feedback/stats', async (req, res) => {
     const overallRatingFieldMap = {
       food: 'overall_experience',
       housekeeping: 'housekeeping_overall',
+      school_canteen: 'sc_overall',
       // backward compat for old data
       toilet: 'toilet_overall_cleanliness',
       laundry: 'laundry_overall_service',
@@ -252,6 +253,27 @@ app.get('/api/feedback/stats', async (req, res) => {
       });
 
       return res.json({ total, byRating, byMealTime, byCategory, byDate: byDateArray });
+    }
+
+    if (qType === 'school_canteen') {
+      // School canteen: category-based aggregation (same pattern as food)
+      const categories = [
+        'sc_food_taste', 'sc_food_temperature', 'sc_food_freshness', 'sc_food_variety', 'sc_portion_size',
+        'sc_kitchen_cleanliness', 'sc_dining_area', 'sc_food_handling',
+        'sc_staff_behavior', 'sc_waiting_time', 'sc_serving_quality',
+      ];
+      const byCategory = {};
+      categories.forEach(c => { byCategory[c] = { excellent: 0, very_good: 0, good: 0, average: 0, dissatisfied: 0 }; });
+
+      feedbacks.forEach(fb => {
+        categories.forEach(c => {
+          if (fb[c] && byCategory[c][fb[c]] !== undefined) {
+            byCategory[c][fb[c]]++;
+          }
+        });
+      });
+
+      return res.json({ total, byRating, byCategory, byDate: byDateArray });
     }
 
     // Housekeeping: aggregate radio/choice fields (toilet + laundry combined)
@@ -304,7 +326,16 @@ app.post('/api/admin/verify', async (req, res) => {
       adminSettings = { setting_value: '54321' };
     }
 
-    res.json({ valid: adminSettings.setting_value === passcode });
+    // School admin passcode
+    const SCHOOL_PASSCODE = '67890';
+
+    if (adminSettings.setting_value === passcode) {
+      return res.json({ valid: true, role: 'admin' });
+    } else if (passcode === SCHOOL_PASSCODE) {
+      return res.json({ valid: true, role: 'school' });
+    } else {
+      return res.json({ valid: false });
+    }
   } catch (error) {
     console.error('Error verifying passcode:', error);
     res.status(500).json({ error: 'Failed to verify passcode' });

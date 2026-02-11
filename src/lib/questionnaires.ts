@@ -1,4 +1,4 @@
-export type QuestionnaireType = "food" | "housekeeping";
+export type QuestionnaireType = "food" | "housekeeping" | "school_canteen";
 
 export interface RatingScaleOption {
   value: string;
@@ -14,7 +14,7 @@ export interface FieldOption {
 export interface QuestionField {
   id: string;
   labelKey: string;
-  type: "rating_grid" | "radio" | "textarea" | "meal_time";
+  type: "rating_grid" | "radio" | "textarea" | "meal_time" | "school_select";
   required?: boolean;
   options?: FieldOption[];
   showLabel?: boolean;
@@ -39,6 +39,7 @@ export interface QuestionnaireConfig {
   suggestionsField: string;
   categoryFields?: string[];
   hasMealTime?: boolean;
+  hasSchoolSelect?: boolean;
 }
 
 /* ── Rating Scales ── */
@@ -222,6 +223,80 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     ],
     suggestionsField: "housekeeping_suggestions",
   },
+
+  /* ── School Canteen Feedback ── */
+  school_canteen: {
+    id: "school_canteen",
+    nameKey: "questionnaire.school_canteen.name",
+    welcomeKey: "questionnaire.school_canteen.welcome",
+    subtitleKey: "questionnaire.school_canteen.subtitle",
+    ratingScale: FOOD_RATING_SCALE,
+    hasMealTime: false,
+    hasSchoolSelect: true,
+    sections: [
+      {
+        id: "school_selection",
+        titleKey: "questionnaire.school_canteen.selectSchool",
+        fields: [
+          { id: "sc_school", labelKey: "questionnaire.school_canteen.selectSchool", type: "school_select", required: true },
+        ],
+      },
+      {
+        id: "food_quality",
+        titleKey: "questionnaire.school_canteen.foodQuality",
+        descriptionKey: "feedback.selectOne",
+        fields: [
+          { id: "sc_food_taste", labelKey: "questionnaire.school_canteen.foodTaste", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_food_temperature", labelKey: "questionnaire.school_canteen.foodTemperature", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_food_freshness", labelKey: "questionnaire.school_canteen.foodFreshness", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_food_variety", labelKey: "questionnaire.school_canteen.foodVariety", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_portion_size", labelKey: "questionnaire.school_canteen.portionSize", type: "rating_grid", required: true, showLabel: true },
+        ],
+      },
+      {
+        id: "hygiene",
+        titleKey: "questionnaire.school_canteen.hygieneCleanliness",
+        descriptionKey: "feedback.selectOne",
+        fields: [
+          { id: "sc_kitchen_cleanliness", labelKey: "questionnaire.school_canteen.kitchenCleanliness", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_dining_area", labelKey: "questionnaire.school_canteen.diningArea", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_food_handling", labelKey: "questionnaire.school_canteen.foodHandling", type: "rating_grid", required: true, showLabel: true },
+        ],
+      },
+      {
+        id: "service",
+        titleKey: "questionnaire.school_canteen.serviceSection",
+        descriptionKey: "feedback.selectOne",
+        fields: [
+          { id: "sc_staff_behavior", labelKey: "questionnaire.school_canteen.staffBehavior", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_waiting_time", labelKey: "questionnaire.school_canteen.waitingTime", type: "rating_grid", required: true, showLabel: true },
+          { id: "sc_serving_quality", labelKey: "questionnaire.school_canteen.servingQuality", type: "rating_grid", required: true, showLabel: true },
+        ],
+      },
+      {
+        id: "overall",
+        titleKey: "feedback.overallExperience",
+        fields: [
+          { id: "sc_overall", labelKey: "", type: "rating_grid", required: true, showLabel: false },
+        ],
+      },
+      {
+        id: "suggestions",
+        titleKey: "feedback.suggestions",
+        fields: [
+          { id: "sc_suggestions", labelKey: "questionnaire.school_canteen.suggestionsPlaceholder", type: "textarea" },
+        ],
+      },
+    ],
+    overallRatingField: "sc_overall",
+    categoryFields: [
+      "sc_food_taste", "sc_food_temperature", "sc_food_freshness", "sc_food_variety", "sc_portion_size",
+      "sc_kitchen_cleanliness", "sc_dining_area", "sc_food_handling",
+      "sc_staff_behavior", "sc_waiting_time", "sc_serving_quality",
+    ],
+    radioFields: [],
+    suggestionsField: "sc_suggestions",
+  },
 };
 
 export const getQuestionnaire = (type: QuestionnaireType): QuestionnaireConfig => {
@@ -231,6 +306,7 @@ export const getQuestionnaire = (type: QuestionnaireType): QuestionnaireConfig =
 export const QUESTIONNAIRE_OPTIONS: { value: QuestionnaireType; labelKey: string }[] = [
   { value: "food", labelKey: "questionnaire.food.name" },
   { value: "housekeeping", labelKey: "questionnaire.housekeeping.name" },
+  { value: "school_canteen", labelKey: "questionnaire.school_canteen.name" },
 ];
 
 /** Get all non-textarea, non-meal_time field IDs for a questionnaire */
@@ -239,7 +315,7 @@ export const getAllFields = (type: QuestionnaireType): string[] => {
   const fields: string[] = [];
   config.sections.forEach(section => {
     section.fields.forEach(field => {
-      if (field.type !== "textarea" && field.type !== "meal_time") {
+      if (field.type !== "textarea" && field.type !== "meal_time" && field.type !== "school_select") {
         fields.push(field.id);
       }
     });

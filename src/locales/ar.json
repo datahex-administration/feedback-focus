@@ -35,6 +35,27 @@
       "missingItems": "أغراض مفقودة",
       "noIssues": "لا مشاكل",
       "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين خدماتنا المنزلية..."
+    },
+    "school_canteen": {
+      "name": "تقييم مقصف المدرسة",
+      "welcome": "تقييم مقصف المدرسة",
+      "subtitle": "ساعدنا في تحسين طعام وخدمة المقصف في مدرستك",
+      "selectSchool": "اختر المدرسة",
+      "foodQuality": "جودة الطعام",
+      "foodTaste": "المذاق",
+      "foodTemperature": "الحرارة",
+      "foodFreshness": "الطازجية",
+      "foodVariety": "التنوع",
+      "portionSize": "حجم الحصة",
+      "hygieneCleanliness": "النظافة والصحة",
+      "kitchenCleanliness": "المطبخ",
+      "diningArea": "منطقة الطعام",
+      "foodHandling": "التعامل مع الطعام",
+      "serviceSection": "الخدمة",
+      "staffBehavior": "سلوك الموظفين",
+      "waitingTime": "وقت الانتظار",
+      "servingQuality": "جودة التقديم",
+      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين مقصف المدرسة..."
     }
   },
   "nav": {
@@ -153,7 +174,8 @@
     "bestCategory": "أفضل فئة",
     "needsAttention": "تحتاج اهتماماً",
     "categoryScoresSummary": "ملخص تقييمات الفئات",
-    "dailyVolume": "حجم التقييمات اليومية"
+    "dailyVolume": "حجم التقييمات اليومية",
+    "schoolName": "المدرسة"
   },
   "thankyou": {
     "title": "شكراً لك!",

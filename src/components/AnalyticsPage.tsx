@@ -43,11 +43,17 @@ const FOOD_CATEGORY_FIELDS = [
   "staff_attitude", "service_time", "cleanliness",
 ];
 
-const AnalyticsPage = () => {
+const SCHOOL_CANTEEN_CATEGORY_FIELDS = [
+  "sc_food_taste", "sc_food_temperature", "sc_food_freshness", "sc_food_variety", "sc_portion_size",
+  "sc_kitchen_cleanliness", "sc_dining_area", "sc_food_handling",
+  "sc_staff_behavior", "sc_waiting_time", "sc_serving_quality",
+];
+
+const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
   const [places, setPlaces] = useState<Place[]>([]);
-  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<QuestionnaireType>("food");
+  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<QuestionnaireType>(restrictTo || "food");
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState("all");
@@ -118,29 +124,48 @@ const AnalyticsPage = () => {
     cleanliness: t("feedback.cleanliness"),
   };
 
-  /* Stacked bar data for category breakdown (food) */
-  const categoryChartData = useMemo(() =>
-    stats && stats.byCategory ? FOOD_CATEGORY_FIELDS.map(cat => ({
-      category: foodCategoryLabels[cat] || cat,
-      ...Object.fromEntries(ratingKeys.map(r => [t(`ratings.${r}`), stats.byCategory![cat]?.[r] || 0])),
-    })) : [], [stats, t, ratingKeys]);
+  const schoolCanteenCategoryLabels: Record<string, string> = {
+    sc_food_taste: t("questionnaire.school_canteen.foodTaste"),
+    sc_food_temperature: t("questionnaire.school_canteen.foodTemperature"),
+    sc_food_freshness: t("questionnaire.school_canteen.foodFreshness"),
+    sc_food_variety: t("questionnaire.school_canteen.foodVariety"),
+    sc_portion_size: t("questionnaire.school_canteen.portionSize"),
+    sc_kitchen_cleanliness: t("questionnaire.school_canteen.kitchenCleanliness"),
+    sc_dining_area: t("questionnaire.school_canteen.diningArea"),
+    sc_food_handling: t("questionnaire.school_canteen.foodHandling"),
+    sc_staff_behavior: t("questionnaire.school_canteen.staffBehavior"),
+    sc_waiting_time: t("questionnaire.school_canteen.waitingTime"),
+    sc_serving_quality: t("questionnaire.school_canteen.servingQuality"),
+  };
 
-  /* Radar chart (food) */
+  const activeCategoryFields = selectedQuestionnaire === "food" ? FOOD_CATEGORY_FIELDS
+    : selectedQuestionnaire === "school_canteen" ? SCHOOL_CANTEEN_CATEGORY_FIELDS : [];
+  const activeCategoryLabels = selectedQuestionnaire === "food" ? foodCategoryLabels
+    : selectedQuestionnaire === "school_canteen" ? schoolCanteenCategoryLabels : {};
+
+  /* Stacked bar data for category breakdown (food & school_canteen) */
+  const categoryChartData = useMemo(() =>
+    stats && stats.byCategory ? activeCategoryFields.map(cat => ({
+      category: activeCategoryLabels[cat] || cat,
+      ...Object.fromEntries(ratingKeys.map(r => [t(`ratings.${r}`), stats.byCategory![cat]?.[r] || 0])),
+    })) : [], [stats, t, ratingKeys, activeCategoryFields, activeCategoryLabels]);
+
+  /* Radar chart (food & school_canteen) */
   const radarData = useMemo(() => {
     if (!stats || !stats.byCategory) return [];
-    return FOOD_CATEGORY_FIELDS.map(cat => {
+    return activeCategoryFields.map(cat => {
       const ratings = stats.byCategory![cat] || {};
       const totalInCat = Object.values(ratings).reduce((s, v) => s + v, 0);
       const weightedSum = Object.entries(ratings).reduce(
         (s, [r, count]) => s + (ratingScoreMap[r] || 0) * count, 0
       );
       return {
-        category: foodCategoryLabels[cat] || cat,
+        category: activeCategoryLabels[cat] || cat,
         score: totalInCat ? +(weightedSum / totalInCat).toFixed(2) : 0,
         fullMark: 5,
       };
     });
-  }, [stats, t, ratingScoreMap]);
+  }, [stats, t, ratingScoreMap, activeCategoryFields, activeCategoryLabels]);
 
   /* Yes/No field chart data (toilet/laundry) */
   const yesNoChartData = useMemo(() => {
@@ -206,11 +231,11 @@ const AnalyticsPage = () => {
     return Math.round((positive / stats.total) * 100);
   }, [stats, ratingKeys]);
 
-  /* Best & worst category (food only) */
+  /* Best & worst category (food & school_canteen) */
   const categoryScores = useMemo(() => {
     if (!stats || !stats.byCategory) return { best: "", worst: "", bestScore: 0, worstScore: 0 };
     let best = "", worst = "", bestScore = 0, worstScore = 6;
-    for (const cat of FOOD_CATEGORY_FIELDS) {
+    for (const cat of activeCategoryFields) {
       const ratings = stats.byCategory[cat] || {};
       const total = Object.values(ratings).reduce((s, v) => s + v, 0);
       const score = total
@@ -220,7 +245,7 @@ const AnalyticsPage = () => {
       if (score < worstScore && total > 0) { worstScore = score; worst = cat; }
     }
     return { best, worst, bestScore: +bestScore.toFixed(1), worstScore: +worstScore.toFixed(1) };
-  }, [stats, ratingScoreMap]);
+  }, [stats, ratingScoreMap, activeCategoryFields]);
 
   /* Custom tooltip for pie */
   const PieTooltip = ({ active, payload }: any) => {
@@ -239,13 +264,15 @@ const AnalyticsPage = () => {
   return (
     <div className="space-y-6">
       {/* Questionnaire Type Tabs */}
+      {!restrictTo && (
       <Tabs value={selectedQuestionnaire} onValueChange={(v) => { setSelectedQuestionnaire(v as QuestionnaireType); setSelectedPlace("all"); }}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           {QUESTIONNAIRE_OPTIONS.map(q => (
             <TabsTrigger key={q.value} value={q.value}>{t(q.labelKey)}</TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
+      )}
 
       {/* Filters */}
       <Card>
@@ -306,13 +333,13 @@ const AnalyticsPage = () => {
                 <div className="text-[11px] text-muted-foreground">{t("admin.satisfactionRate")}</div>
               </CardContent>
             </Card>
-            {selectedQuestionnaire === "food" && (
+            {(selectedQuestionnaire === "food" || selectedQuestionnaire === "school_canteen") && (
               <>
                 <Card className="border-blue-200 bg-blue-50/30">
                   <CardContent className="p-4 text-center space-y-1">
                     <Star className="w-5 h-5 mx-auto text-blue-600" />
                     <div className="text-lg font-bold text-blue-600 leading-tight">
-                      {foodCategoryLabels[categoryScores.best] || "—"}
+                      {activeCategoryLabels[categoryScores.best] || "—"}
                     </div>
                     <div className="text-[11px] text-muted-foreground">{t("admin.bestCategory")} ({categoryScores.bestScore}/5)</div>
                   </CardContent>
@@ -321,7 +348,7 @@ const AnalyticsPage = () => {
                   <CardContent className="p-4 text-center space-y-1">
                     <AlertTriangle className="w-5 h-5 mx-auto text-orange-600" />
                     <div className="text-lg font-bold text-orange-600 leading-tight">
-                      {foodCategoryLabels[categoryScores.worst] || "—"}
+                      {activeCategoryLabels[categoryScores.worst] || "—"}
                     </div>
                     <div className="text-[11px] text-muted-foreground">{t("admin.needsAttention")} ({categoryScores.worstScore}/5)</div>
                   </CardContent>
@@ -433,6 +460,84 @@ const AnalyticsPage = () => {
                 </CardHeader>
                 <CardContent className="pt-4">
                   <ResponsiveContainer width="100%" height={FOOD_CATEGORY_FIELDS.length * 52 + 40}>
+                    <BarChart data={categoryChartData} layout="vertical" barCategoryGap={8}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" allowDecimals={false} />
+                      <YAxis dataKey="category" type="category" width={110} tick={{ fontSize: 11 }} />
+                      <Tooltip />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      {ratingKeys.map((key, i) => (
+                        <Bar key={key} dataKey={t(`ratings.${key}`)} stackId="a" fill={COLORS[i % COLORS.length]} radius={i === 0 ? [0, 4, 4, 0] : undefined} />
+                      ))}
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Category Scores Summary */}
+              <Card>
+                <CardHeader className="pb-0">
+                  <CardTitle className="text-sm">{t("admin.categoryScoresSummary")}</CardTitle>
+                  <CardDescription className="text-xs">Average score and breakdown for each category</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
+                    {radarData.map((item, idx) => {
+                      const pct = Math.round((item.score / 5) * 100);
+                      const color = pct >= 80 ? "#22c55e" : pct >= 60 ? "#3b82f6" : pct >= 40 ? "#f59e0b" : "#ef4444";
+                      return (
+                        <div key={idx} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-medium">{item.category}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold" style={{ color }}>{item.score}/5</span>
+                              <Badge variant="outline" className="text-[10px] px-1.5" style={{ borderColor: color, color }}>
+                                {pct}%
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: color }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {/* ═══ SCHOOL CANTEEN SPECIFIC CHARTS ═══ */}
+          {selectedQuestionnaire === "school_canteen" && (
+            <>
+              {/* Radar */}
+              <Card>
+                <CardHeader className="pb-0">
+                  <CardTitle className="text-sm">{t("admin.qualityRadar")}</CardTitle>
+                  <CardDescription className="text-xs">Average score per category (out of 5)</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="hsl(var(--border))" />
+                      <PolarAngleAxis dataKey="category" tick={{ fontSize: 9 }} />
+                      <PolarRadiusAxis domain={[0, 5]} tick={{ fontSize: 9 }} />
+                      <Radar dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.25} strokeWidth={2} />
+                      <Tooltip formatter={(v: number) => [`${v} / 5`, t("admin.avgScore")]} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Category Breakdown */}
+              <Card>
+                <CardHeader className="pb-0">
+                  <CardTitle className="text-sm">{t("admin.categoryBreakdown")}</CardTitle>
+                  <CardDescription className="text-xs">Rating distribution for every feedback category</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <ResponsiveContainer width="100%" height={SCHOOL_CANTEEN_CATEGORY_FIELDS.length * 52 + 40}>
                     <BarChart data={categoryChartData} layout="vertical" barCategoryGap={8}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                       <XAxis type="number" allowDecimals={false} />

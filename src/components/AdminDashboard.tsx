@@ -62,6 +62,22 @@ interface Feedback {
   laundry_ironing_folding?: string;
   laundry_issues?: string;
   housekeeping_suggestions?: string;
+  /* school canteen fields */
+  sc_school?: string;
+  school_name?: string;
+  sc_food_taste?: string;
+  sc_food_temperature?: string;
+  sc_food_freshness?: string;
+  sc_food_variety?: string;
+  sc_portion_size?: string;
+  sc_kitchen_cleanliness?: string;
+  sc_dining_area?: string;
+  sc_food_handling?: string;
+  sc_staff_behavior?: string;
+  sc_waiting_time?: string;
+  sc_serving_quality?: string;
+  sc_overall?: string;
+  sc_suggestions?: string;
   [key: string]: unknown;
 }
 
@@ -74,6 +90,7 @@ interface Place {
 
 interface AdminDashboardProps {
   onLogout: () => void;
+  role?: string;
 }
 
 /* ── Rating badge colours ── */
@@ -95,9 +112,10 @@ const ratingDot: Record<string, string> = {
 
 /* ─────────────────────────────────────────────────────────────── */
 
-const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
+const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === "ar";
+  const isSchoolMode = role === "school";
 
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -112,7 +130,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
   const [filterRating, setFilterRating] = useState("all");
   const [filterFromDate, setFilterFromDate] = useState("");
   const [filterToDate, setFilterToDate] = useState("");
-  const [filterQuestionnaire, setFilterQuestionnaire] = useState<string>("all");
+  const [filterQuestionnaire, setFilterQuestionnaire] = useState<string>(isSchoolMode ? "school_canteen" : "all");
 
   const formatRating = (r: string) => t(`ratings.${r}`);
   const getId = (f: Feedback) => f._id || f.id || "";
@@ -237,6 +255,23 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
           "Laundry Issues": f.laundry_issues || "",
           Suggestions: (f as any).housekeeping_suggestions || "",
         });
+      } else if (qType === "school_canteen") {
+        Object.assign(base, {
+          "School": f.school_name || "",
+          "Food Taste": f.sc_food_taste || "",
+          "Food Temperature": f.sc_food_temperature || "",
+          "Food Freshness": f.sc_food_freshness || "",
+          "Food Variety": f.sc_food_variety || "",
+          "Portion Size": f.sc_portion_size || "",
+          "Kitchen Cleanliness": f.sc_kitchen_cleanliness || "",
+          "Dining Area": f.sc_dining_area || "",
+          "Food Handling": f.sc_food_handling || "",
+          "Staff Behavior": f.sc_staff_behavior || "",
+          "Waiting Time": f.sc_waiting_time || "",
+          "Serving Quality": f.sc_serving_quality || "",
+          "Overall": f.sc_overall || "",
+          Suggestions: f.sc_suggestions || "",
+        });
       }
       return base;
     });
@@ -273,9 +308,9 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
 
       <main className="container max-w-6xl mx-auto px-4 py-6">
         <Tabs defaultValue="feedbacks" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${isSchoolMode ? "grid-cols-2" : "grid-cols-3"}`}>
             <TabsTrigger value="feedbacks">{t("admin.feedbacks")}</TabsTrigger>
-            <TabsTrigger value="places">{t("admin.places")}</TabsTrigger>
+            {!isSchoolMode && <TabsTrigger value="places">{t("admin.places")}</TabsTrigger>}
             <TabsTrigger value="analytics">{t("admin.analytics")}</TabsTrigger>
           </TabsList>
 
@@ -310,6 +345,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
               <Card className="animate-fade-in">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {!isSchoolMode && (
                     <div>
                       <Label className="text-xs mb-1 block">{t("admin.questionnaireType")}</Label>
                       <Select value={filterQuestionnaire} onValueChange={setFilterQuestionnaire}>
@@ -322,6 +358,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                         </SelectContent>
                       </Select>
                     </div>
+                    )}
                     <div>
                       <Label className="text-xs mb-1 block">{t("admin.places")}</Label>
                       <Select value={filterPlace} onValueChange={setFilterPlace}>
@@ -466,6 +503,15 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                                 <TableHead className="text-center">{t("questionnaire.housekeeping.returnedOnTime")}</TableHead>
                               </>
                             )}
+                            {activeQType === "school_canteen" && (
+                              <>
+                                <TableHead>{t("admin.schoolName")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.foodTaste")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.foodTemperature")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.kitchenCleanliness")}</TableHead>
+                                <TableHead className="text-center">{t("questionnaire.school_canteen.staffBehavior")}</TableHead>
+                              </>
+                            )}
                             {!activeQType && <TableHead>{t("admin.questionnaireType")}</TableHead>}
                             <TableHead className="text-center">{t("feedback.overallExperience")}</TableHead>
                             <TableHead className="w-[40px]"></TableHead>
@@ -505,6 +551,15 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                                   <TableCell className="text-center text-xs">{fb.toilet_unpleasant_smell ? t(`common.${fb.toilet_unpleasant_smell}`) : "—"}</TableCell>
                                   <TableCell className="text-center text-xs">{fb.laundry_properly_cleaned ? t(`common.${fb.laundry_properly_cleaned}`) : "—"}</TableCell>
                                   <TableCell className="text-center text-xs">{fb.laundry_returned_on_time ? t(`common.${fb.laundry_returned_on_time}`) : "—"}</TableCell>
+                                </>
+                              )}
+                              {activeQType === "school_canteen" && (
+                                <>
+                                  <TableCell className="text-xs max-w-[120px] truncate">{fb.school_name || "—"}</TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_food_taste || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_food_temperature || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_kitchen_cleanliness || ""} /></TableCell>
+                                  <TableCell className="text-center"><RatingDot rating={fb.sc_staff_behavior || ""} /></TableCell>
                                 </>
                               )}
                               {!activeQType && (
@@ -577,7 +632,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
 
           {/* ═══════════ ANALYTICS TAB ═══════════ */}
           <TabsContent value="analytics">
-            <AnalyticsPage />
+            <AnalyticsPage restrictTo={isSchoolMode ? "school_canteen" : undefined} />
           </TabsContent>
         </Tabs>
       </main>
@@ -654,6 +709,44 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                             t("common.notApplicable")
                           } />
                           <DetailRowText label={t("questionnaire.housekeeping.issuesNoticed")} value={detailFeedback.laundry_issues || "—"} />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* School Canteen-specific sections */}
+                  {qType === "school_canteen" && (
+                    <>
+                      {detailFeedback.school_name && (
+                        <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+                          <span className="text-sm font-medium">{t("admin.schoolName")}</span>
+                          <span className="text-sm font-medium">{detailFeedback.school_name}</span>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.foodQuality")}</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.foodTaste")} value={detailFeedback.sc_food_taste || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.foodTemperature")} value={detailFeedback.sc_food_temperature || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.foodFreshness")} value={detailFeedback.sc_food_freshness || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.foodVariety")} value={detailFeedback.sc_food_variety || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.portionSize")} value={detailFeedback.sc_portion_size || ""} />
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.hygieneCleanliness")}</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.kitchenCleanliness")} value={detailFeedback.sc_kitchen_cleanliness || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.diningArea")} value={detailFeedback.sc_dining_area || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.foodHandling")} value={detailFeedback.sc_food_handling || ""} />
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-foreground">{t("questionnaire.school_canteen.serviceSection")}</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <DetailRow label={t("questionnaire.school_canteen.staffBehavior")} value={detailFeedback.sc_staff_behavior || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.waitingTime")} value={detailFeedback.sc_waiting_time || ""} />
+                          <DetailRow label={t("questionnaire.school_canteen.servingQuality")} value={detailFeedback.sc_serving_quality || ""} />
                         </div>
                       </div>
                     </>

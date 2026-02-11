@@ -35,6 +35,27 @@
       "missingItems": "Missing Items",
       "noIssues": "No Issues",
       "suggestionsPlaceholder": "Any comments or suggestions to improve our housekeeping services..."
+    },
+    "school_canteen": {
+      "name": "School Canteen Feedback",
+      "welcome": "School Canteen Feedback",
+      "subtitle": "Help us improve the canteen food and service at your school",
+      "selectSchool": "Select School",
+      "foodQuality": "Food Quality",
+      "foodTaste": "Taste",
+      "foodTemperature": "Temperature",
+      "foodFreshness": "Freshness",
+      "foodVariety": "Variety",
+      "portionSize": "Portion Size",
+      "hygieneCleanliness": "Hygiene & Cleanliness",
+      "kitchenCleanliness": "Kitchen",
+      "diningArea": "Dining Area",
+      "foodHandling": "Food Handling",
+      "serviceSection": "Service",
+      "staffBehavior": "Staff Behavior",
+      "waitingTime": "Waiting Time",
+      "servingQuality": "Serving Quality",
+      "suggestionsPlaceholder": "Any comments or suggestions to improve the school canteen..."
     }
   },
   "nav": {
@@ -153,7 +174,8 @@
     "bestCategory": "Best Category",
     "needsAttention": "Needs Attention",
     "categoryScoresSummary": "Category Scores Summary",
-    "dailyVolume": "Daily feedback volume over time"
+    "dailyVolume": "Daily feedback volume over time",
+    "schoolName": "School"
   },
   "thankyou": {
     "title": "Thank You!",

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 interface AdminLoginProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (role?: string) => void;
 }
 
 const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
@@ -40,7 +40,7 @@ const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
 
       if (data.valid) {
         toast.success(t('toast.welcomeAdmin'));
-        onLoginSuccess();
+        onLoginSuccess(data.role || 'admin');
       } else {
         toast.error(t('toast.invalidPasscode'));
         setPasscode("");

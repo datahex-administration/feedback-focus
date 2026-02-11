@@ -6,9 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import RatingGrid from "./RatingGrid";
 import { cn } from "@/lib/utils";
+import { getActiveSchools, getSchoolDisplayName } from "@/lib/schools";
 import {
   type QuestionnaireType,
   type QuestionField,
@@ -29,7 +33,7 @@ const FeedbackForm = ({
   placeName,
   questionnaireType = "food",
 }: FeedbackFormProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const config = getQuestionnaire(questionnaireType);
 
   /* Build initial values from config */
@@ -62,6 +66,8 @@ const FeedbackForm = ({
         if (field.required && !values[field.id]) {
           if (field.type === "meal_time") {
             toast.error(t("toast.selectMealTime"));
+          } else if (field.type === "school_select") {
+            toast.error(t("toast.completeAllFields"));
           } else {
             toast.error(t("toast.completeAllFields"));
           }
@@ -91,6 +97,11 @@ const FeedbackForm = ({
           if (field.type === "textarea") {
             const v = (values[field.id] || "").trim();
             payload[field.id] = v || null;
+          } else if (field.type === "school_select") {
+            payload[field.id] = values[field.id] || null;
+            /* Also store the school display name */
+            const school = getActiveSchools().find(s => s.id === values[field.id]);
+            if (school) payload.school_name = school.nameEn;
           } else {
             payload[field.id] = values[field.id] || null;
           }
@@ -119,6 +130,29 @@ const FeedbackForm = ({
   };
 
   /* ── Field Renderers ── */
+
+  const renderSchoolSelectField = (field: QuestionField) => {
+    const schools = getActiveSchools();
+    return (
+      <div className="space-y-2">
+        <Select
+          value={values[field.id] || ""}
+          onValueChange={(v) => handleValueChange(field.id, v)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={t(field.labelKey)} />
+          </SelectTrigger>
+          <SelectContent className="max-h-[300px]">
+            {schools.map((school) => (
+              <SelectItem key={school.id} value={school.id}>
+                {getSchoolDisplayName(school, i18n.language)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  };
 
   const renderMealTimeField = () => (
     <div className="space-y-3">
@@ -205,6 +239,7 @@ const FeedbackForm = ({
     const radioFields = section.fields.filter((f) => f.type === "radio");
     const textareaFields = section.fields.filter((f) => f.type === "textarea");
     const mealTimeFields = section.fields.filter((f) => f.type === "meal_time");
+    const schoolSelectFields = section.fields.filter((f) => f.type === "school_select");
 
     const hasRequired = section.fields.some((f) => f.required);
 
@@ -219,6 +254,11 @@ const FeedbackForm = ({
           )}
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* School select */}
+          {schoolSelectFields.map((field) => (
+            <div key={field.id}>{renderSchoolSelectField(field)}</div>
+          ))}
+
           {/* Meal time */}
           {mealTimeFields.length > 0 && renderMealTimeField()}
 
