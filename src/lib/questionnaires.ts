@@ -250,7 +250,6 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
             id: "sc_hygiene_cleanliness",
             labelKey: "questionnaire.school_canteen.hygieneQuestion",
             type: "radio",
-            required: true,
             options: [
               { value: "excellent", labelKey: "ratings.excellent" },
               { value: "good", labelKey: "ratings.good" },
@@ -270,7 +269,6 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
             id: "sc_staff_hygiene",
             labelKey: "questionnaire.school_canteen.staffHygieneQuestion",
             type: "radio",
-            required: true,
             options: [
               { value: "always", labelKey: "questionnaire.school_canteen.always" },
               { value: "most_of_the_time", labelKey: "questionnaire.school_canteen.mostOfTheTime" },
@@ -290,7 +288,6 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
             id: "sc_employee_behavior",
             labelKey: "questionnaire.school_canteen.employeeBehaviorQuestion",
             type: "radio",
-            required: true,
             options: [
               { value: "very_friendly", labelKey: "questionnaire.school_canteen.veryFriendly" },
               { value: "good", labelKey: "ratings.good" },
@@ -310,7 +307,6 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
             id: "sc_food_quality",
             labelKey: "questionnaire.school_canteen.foodQualityQuestion",
             type: "radio",
-            required: true,
             options: [
               { value: "excellent", labelKey: "ratings.excellent" },
               { value: "good", labelKey: "ratings.good" },
@@ -330,7 +326,6 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
             id: "sc_food_freshness",
             labelKey: "questionnaire.school_canteen.foodFreshnessQuestion",
             type: "radio",
-            required: true,
             options: [
               { value: "very_fresh", labelKey: "questionnaire.school_canteen.veryFresh" },
               { value: "fresh", labelKey: "questionnaire.school_canteen.fresh" },
