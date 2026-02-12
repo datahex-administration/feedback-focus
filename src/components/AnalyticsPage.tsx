@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, TrendingUp, Star, AlertTriangle, Utensils } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { X, TrendingUp, Star, AlertTriangle, Utensils, ChevronDown } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, RadarChart, PolarGrid,
@@ -55,23 +57,25 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<QuestionnaireType>(restrictTo || "food");
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedPlace, setSelectedPlace] = useState("all");
+  const [selectedPlaces, setSelectedPlaces] = useState<string[]>([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  const hasFilters = selectedPlace !== "all" || fromDate || toDate;
+  const hasFilters = selectedPlaces.length > 0 || fromDate || toDate;
 
   useEffect(() => {
     fetch(`${API_URL}/api/places`).then(r => r.json()).then(setPlaces).catch(() => {});
   }, []);
 
-  useEffect(() => { fetchStats(); }, [selectedPlace, fromDate, toDate, selectedQuestionnaire]);
+  useEffect(() => { fetchStats(); }, [selectedPlaces, fromDate, toDate, selectedQuestionnaire]);
 
   const fetchStats = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (selectedPlace !== "all") params.set("place_slug", selectedPlace);
+      if (selectedPlaces.length > 0) {
+        selectedPlaces.forEach(slug => params.append("place_slug", slug));
+      }
       if (fromDate) params.set("from_date", fromDate);
       if (toDate) params.set("to_date", toDate);
       params.set("questionnaire_type", selectedQuestionnaire);
@@ -84,7 +88,21 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
     }
   };
 
-  const clearFilters = () => { setSelectedPlace("all"); setFromDate(""); setToDate(""); };
+  const clearFilters = () => { setSelectedPlaces([]); setFromDate(""); setToDate(""); };
+
+  const togglePlace = (slug: string) => {
+    setSelectedPlaces(prev => 
+      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+    );
+  };
+
+  const selectAllPlaces = () => {
+    if (selectedPlaces.length === filteredPlaces.length) {
+      setSelectedPlaces([]);
+    } else {
+      setSelectedPlaces(filteredPlaces.map(p => p.slug));
+    }
+  };
 
   /* Filter places by selected questionnaire type */
   const filteredPlaces = useMemo(() =>
@@ -258,7 +276,7 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
     <div className="space-y-6">
       {/* Questionnaire Type Tabs */}
       {!restrictTo && (
-      <Tabs value={selectedQuestionnaire} onValueChange={(v) => { setSelectedQuestionnaire(v as QuestionnaireType); setSelectedPlace("all"); }}>
+      <Tabs value={selectedQuestionnaire} onValueChange={(v) => { setSelectedQuestionnaire(v as QuestionnaireType); setSelectedPlaces([]); }}>
         <TabsList className="grid w-full grid-cols-3">
           {QUESTIONNAIRE_OPTIONS.map(q => (
             <TabsTrigger key={q.value} value={q.value}>{t(q.labelKey)}</TabsTrigger>
@@ -273,17 +291,52 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
             <div>
               <Label className="text-xs mb-1 block">{t("admin.places")}</Label>
-              <Select value={selectedPlace} onValueChange={setSelectedPlace}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("admin.allPlaces")}</SelectItem>
-                  {filteredPlaces.map(p => (
-                    <SelectItem key={p.slug} value={p.slug}>
-                      {isArabic && p.name_ar ? p.name_ar : p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span className="truncate">
+                      {selectedPlaces.length === 0
+                        ? t("admin.allPlaces")
+                        : selectedPlaces.length === 1
+                        ? (filteredPlaces.find(p => p.slug === selectedPlaces[0])
+                            ? (isArabic && filteredPlaces.find(p => p.slug === selectedPlaces[0])?.name_ar
+                                ? filteredPlaces.find(p => p.slug === selectedPlaces[0])?.name_ar
+                                : filteredPlaces.find(p => p.slug === selectedPlaces[0])?.name)
+                            : selectedPlaces[0])
+                        : `${selectedPlaces.length} ${t("admin.placesSelected")}`}
+                    </span>
+                    <ChevronDown className="ltr:ml-2 rtl:mr-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3" align="start">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse pb-2 border-b">
+                      <Checkbox
+                        id="select-all"
+                        checked={selectedPlaces.length === filteredPlaces.length && filteredPlaces.length > 0}
+                        onCheckedChange={selectAllPlaces}
+                      />
+                      <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                        {selectedPlaces.length === filteredPlaces.length ? t("admin.deselectAll") : t("admin.selectAll")}
+                      </label>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto space-y-2">
+                      {filteredPlaces.map(place => (
+                        <div key={place.slug} className="flex items-center space-x-2 rtl:space-x-reverse">
+                          <Checkbox
+                            id={`place-${place.slug}`}
+                            checked={selectedPlaces.includes(place.slug)}
+                            onCheckedChange={() => togglePlace(place.slug)}
+                          />
+                          <label htmlFor={`place-${place.slug}`} className="text-sm cursor-pointer flex-1">
+                            {isArabic && place.name_ar ? place.name_ar : place.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label className="text-xs mb-1 block">{t("admin.fromDate")}</Label>

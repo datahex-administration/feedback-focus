@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import {
   LogOut, RefreshCw, FileDown, Filter, X, Eye, ChevronLeft, ChevronRight,
-  TrendingUp, TrendingDown, Minus, MessageSquare,
+  TrendingUp, TrendingDown, Minus, MessageSquare, Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,10 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { utils, writeFile } from "xlsx";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -239,6 +243,19 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
   const pagedFeedbacks = feedbacks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   /* ── Export ── */
+  const handleDeleteFeedback = async (id: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/feedback/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      toast.success(t("admin.feedbackDeleted"));
+      setFeedbackToDelete(null);
+      fetchFeedbacks();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(t("admin.deleteFailed"));
+    }
+  };
+
   const exportToExcel = () => {
     const rows = feedbacks.map(f => {
       const qType = f.questionnaire_type || "food";
@@ -533,7 +550,7 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                             )}
                             {!activeQType && <TableHead>{t("admin.questionnaireType")}</TableHead>}
                             <TableHead className="text-center">{t("feedback.overallExperience")}</TableHead>
-                            <TableHead className="w-[40px]"></TableHead>
+                            <TableHead className="w-[80px]"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -593,9 +610,19 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDetailFeedback(fb)}>
-                                  <Eye className="w-3.5 h-3.5" />
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDetailFeedback(fb)}>
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-7 w-7 text-destructive hover:text-destructive" 
+                                    onClick={() => setFeedbackToDelete(getId(fb))}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           );})}
@@ -804,6 +831,27 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!feedbackToDelete} onOpenChange={() => setFeedbackToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("admin.deleteFeedback")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.deleteFeedbackConfirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("admin.cancel")}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => feedbackToDelete && handleDeleteFeedback(feedbackToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("admin.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

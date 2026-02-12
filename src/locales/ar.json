@@ -173,6 +173,9 @@
     "fromDate": "من تاريخ",
     "toDate": "إلى تاريخ",
     "allPlaces": "جميع الأماكن",
+    "placesSelected": "أماكن محددة",
+    "selectAll": "تحديد الكل",
+    "deselectAll": "إلغاء تحديد الكل",
     "allMealTimes": "جميع الأوقات",
     "allRatings": "جميع التقييمات",
     "clearFilters": "مسح الفلاتر",
@@ -199,7 +202,13 @@
     "needsAttention": "تحتاج اهتماماً",
     "categoryScoresSummary": "ملخص تقييمات الفئات",
     "dailyVolume": "حجم التقييمات اليومية",
-    "schoolName": "المدرسة"
+    "schoolName": "المدرسة",
+    "deleteFeedback": "حذف التقييم",
+    "deleteFeedbackConfirm": "هل أنت متأكد من حذف هذا التقييم؟ لا يمكن التراجع عن هذا الإجراء.",
+    "delete": "حذف",
+    "cancel": "إلغاء",
+    "feedbackDeleted": "تم حذف التقييم بنجاح",
+    "deleteFailed": "فشل حذف التقييم"
   },
   "thankyou": {
     "title": "شكراً لك!",

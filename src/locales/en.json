@@ -173,6 +173,9 @@
     "fromDate": "From Date",
     "toDate": "To Date",
     "allPlaces": "All Places",
+    "placesSelected": "places selected",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
     "allMealTimes": "All Meal Times",
     "allRatings": "All Ratings",
     "clearFilters": "Clear Filters",
@@ -199,7 +202,13 @@
     "needsAttention": "Needs Attention",
     "categoryScoresSummary": "Category Scores Summary",
     "dailyVolume": "Daily feedback volume over time",
-    "schoolName": "School"
+    "schoolName": "School",
+    "deleteFeedback": "Delete Feedback",
+    "deleteFeedbackConfirm": "Are you sure you want to delete this feedback? This action cannot be undone.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "feedbackDeleted": "Feedback deleted successfully",
+    "deleteFailed": "Failed to delete feedback"
   },
   "thankyou": {
     "title": "Thank You!",

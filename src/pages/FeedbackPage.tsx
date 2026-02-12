@@ -31,6 +31,13 @@ const FeedbackPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // Set Arabic as default for school feedback form
+  useEffect(() => {
+    if (!localStorage.getItem('i18nextLng')) {
+      i18n.changeLanguage('ar');
+    }
+  }, [i18n]);
+
   useEffect(() => {
     const fetchPlace = async () => {
       try {

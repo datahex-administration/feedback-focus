@@ -175,13 +175,35 @@ app.get('/api/feedback', async (req, res) => {
   }
 });
 
+// Delete feedback
+app.delete('/api/feedback/:id', async (req, res) => {
+  try {
+    const { ObjectId } = (await import('mongodb'));
+    const result = await getFeedbackCollection().deleteOne({ _id: new ObjectId(req.params.id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Feedback not found' });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    res.status(500).json({ error: 'Failed to delete feedback' });
+  }
+});
+
 // Get feedback stats/analytics
 app.get('/api/feedback/stats', async (req, res) => {
   try {
     const { place_slug, from_date, to_date, questionnaire_type } = req.query;
     const filter = {};
 
-    if (place_slug) filter.place_slug = place_slug;
+    // Handle multiple place_slug values (array or single string)
+    if (place_slug) {
+      const slugs = Array.isArray(place_slug) ? place_slug : [place_slug];
+      if (slugs.length > 0) {
+        filter.place_slug = { $in: slugs };
+      }
+    }
+    
     if (questionnaire_type) {
       if (questionnaire_type === 'food') {
         // Backward compat: food includes docs without questionnaire_type
