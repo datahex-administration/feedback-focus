@@ -147,6 +147,7 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [detailFeedback, setDetailFeedback] = useState<Feedback | null>(null);
+  const [feedbackToDelete, setFeedbackToDelete] = useState<string | null>(null);
 
   /* Filters */
   const [filterPlace, setFilterPlace] = useState("all");
