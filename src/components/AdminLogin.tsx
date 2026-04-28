@@ -26,7 +26,7 @@ const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
     setIsVerifying(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/admin/verify`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/admin/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,6 +89,7 @@ const AdminLogin = ({ onLoginSuccess }: AdminLoginProps) => {
                 maxLength={5}
                 value={passcode}
                 onChange={setPasscode}
+                autoComplete="off"
               >
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />

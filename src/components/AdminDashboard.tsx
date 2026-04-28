@@ -32,7 +32,7 @@ import PlacesManager from "./PlacesManager";
 import AnalyticsPage from "./AnalyticsPage";
 import { QUESTIONNAIRE_OPTIONS, getQuestionnaire, type QuestionnaireType } from "@/lib/questionnaires";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 const PAGE_SIZE = 15;
 
 interface Feedback {

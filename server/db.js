@@ -11,7 +11,7 @@ let db;
 export async function connectDB() {
   try {
     await client.connect();
-    db = client.db('foodcity_feedback');
+    db = client.db('feedback_foodcity');
     console.log('Connected to MongoDB');
     return db;
   } catch (error) {

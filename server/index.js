@@ -2,17 +2,33 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { connectDB, getDB } from './db.js';
 
 dotenv.config();
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
 
-await connectDB();
+// Start listening FIRST, then connect to MongoDB
+app.listen(PORT, async () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  try {
+    await connectDB();
+    console.log('MongoDB connected successfully');
+  } catch (err) {
+    console.error('MongoDB connection failed:', err.message);
+  }
+});
+
+// Serve static frontend files
+const publicDir = join(__dirname, '..', 'public');
+app.use(express.static(publicDir));
 
 const getFeedbackCollection = () => getDB().collection('feedback');
 const getAdminSettingsCollection = () => getDB().collection('admin_settings');
@@ -109,7 +125,7 @@ app.delete('/api/places/:id', async (req, res) => {
 
 // ─── FEEDBACK ───
 
-// Submit feedback (now with place_slug and questionnaire_type)
+// Submit feedback
 app.post('/api/feedback', async (req, res) => {
   try {
     const { place_slug, questionnaire_type, ...rest } = req.body;
@@ -153,9 +169,7 @@ app.get('/api/feedback', async (req, res) => {
     if (place_slug) filter.place_slug = place_slug;
     if (meal_time) filter.meal_time = meal_time;
     if (rating) filter.overall_experience = rating;
-    if (questionnaire_type) {
-      filter.questionnaire_type = questionnaire_type;
-    }
+    if (questionnaire_type) filter.questionnaire_type = questionnaire_type;
 
     if (from_date || to_date) {
       filter.feedback_date = {};
@@ -196,17 +210,13 @@ app.get('/api/feedback/stats', async (req, res) => {
     const { place_slug, from_date, to_date, questionnaire_type } = req.query;
     const filter = {};
 
-    // Handle multiple place_slug values (array or single string)
     if (place_slug) {
       const slugs = Array.isArray(place_slug) ? place_slug : [place_slug];
-      if (slugs.length > 0) {
-        filter.place_slug = { $in: slugs };
-      }
+      if (slugs.length > 0) filter.place_slug = { $in: slugs };
     }
-    
+
     if (questionnaire_type) {
       if (questionnaire_type === 'food') {
-        // Backward compat: food includes docs without questionnaire_type
         filter.$or = [
           { questionnaire_type: 'food' },
           { questionnaire_type: { $exists: false } },
@@ -231,7 +241,6 @@ app.get('/api/feedback/stats', async (req, res) => {
 
     const qType = questionnaire_type || 'food';
 
-    // Common: date aggregation
     const byDate = {};
     feedbacks.forEach(fb => {
       byDate[fb.feedback_date] = (byDate[fb.feedback_date] || 0) + 1;
@@ -240,18 +249,16 @@ app.get('/api/feedback/stats', async (req, res) => {
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Overall rating field depends on questionnaire type
     const overallRatingFieldMap = {
       food: 'overall_experience',
+      food_laundry: 'overall_experience',
       housekeeping: 'housekeeping_overall',
       school_canteen: 'sc_overall',
-      // backward compat for old data
       toilet: 'toilet_overall_cleanliness',
       laundry: 'laundry_overall_service',
     };
     const overallField = overallRatingFieldMap[qType] || 'overall_experience';
 
-    // Count by overall rating
     const byRating = {};
     feedbacks.forEach(fb => {
       const val = fb[overallField];
@@ -259,7 +266,6 @@ app.get('/api/feedback/stats', async (req, res) => {
     });
 
     if (qType === 'food') {
-      // Food-specific aggregations
       const byMealTime = {};
       const categories = ['food_temperature', 'food_taste', 'food_aroma', 'menu_variety', 'staff_attitude', 'service_time', 'cleanliness'];
       const byCategory = {};
@@ -277,8 +283,35 @@ app.get('/api/feedback/stats', async (req, res) => {
       return res.json({ total, byRating, byMealTime, byCategory, byDate: byDateArray });
     }
 
+    if (qType === 'food_laundry') {
+      const byMealTime = {};
+      const categories = ['food_temperature', 'food_taste', 'food_aroma', 'menu_variety', 'staff_attitude', 'service_time', 'cleanliness'];
+      const byCategory = {};
+      categories.forEach(c => { byCategory[c] = { excellent: 0, very_good: 0, good: 0, average: 0, dissatisfied: 0 }; });
+
+      const laundryRadioFields = ['laundry_properly_cleaned', 'laundry_returned_on_time', 'laundry_fresh_no_odor', 'laundry_ironing_folding', 'laundry_issues'];
+      const byField = {};
+      laundryRadioFields.forEach(f => { byField[f] = {}; });
+
+      feedbacks.forEach(fb => {
+        byMealTime[fb.meal_time] = (byMealTime[fb.meal_time] || 0) + 1;
+        categories.forEach(c => {
+          if (fb[c] && byCategory[c][fb[c]] !== undefined) {
+            byCategory[c][fb[c]]++;
+          }
+        });
+        laundryRadioFields.forEach(f => {
+          const val = fb[f];
+          if (val) {
+            byField[f][val] = (byField[f][val] || 0) + 1;
+          }
+        });
+      });
+
+      return res.json({ total, byRating, byMealTime, byCategory, byField, byDate: byDateArray });
+    }
+
     if (qType === 'school_canteen') {
-      // School canteen: category-based aggregation (same pattern as food)
       const categories = [
         'sc_food_taste', 'sc_food_temperature', 'sc_food_freshness', 'sc_food_variety', 'sc_portion_size',
         'sc_kitchen_cleanliness', 'sc_dining_area', 'sc_food_handling',
@@ -298,7 +331,7 @@ app.get('/api/feedback/stats', async (req, res) => {
       return res.json({ total, byRating, byCategory, byDate: byDateArray });
     }
 
-    // Housekeeping: aggregate radio/choice fields (toilet + laundry combined)
+    // Housekeeping
     const radioFieldsMap = {
       housekeeping: [
         'toilet_clean_at_use', 'toilet_supplies_available', 'toilet_unpleasant_smell',
@@ -306,7 +339,6 @@ app.get('/api/feedback/stats', async (req, res) => {
         'laundry_properly_cleaned', 'laundry_returned_on_time', 'laundry_fresh_no_odor',
         'laundry_ironing_folding', 'laundry_issues',
       ],
-      // backward compat for old data
       toilet: ['toilet_clean_at_use', 'toilet_supplies_available', 'toilet_unpleasant_smell', 'toilet_area_needs_cleaning', 'toilet_cleaned_frequently'],
       laundry: ['laundry_properly_cleaned', 'laundry_returned_on_time', 'laundry_fresh_no_odor', 'laundry_ironing_folding', 'laundry_issues'],
     };
@@ -348,7 +380,6 @@ app.post('/api/admin/verify', async (req, res) => {
       adminSettings = { setting_value: '54321' };
     }
 
-    // School admin passcode
     const SCHOOL_PASSCODE = '67890';
 
     if (adminSettings.setting_value === passcode) {
@@ -364,26 +395,12 @@ app.post('/api/admin/verify', async (req, res) => {
   }
 });
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Food City Feedback API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      places: '/api/places',
-      feedback: '/api/feedback',
-      stats: '/api/feedback/stats',
-      admin: '/api/admin/verify'
-    }
-  });
-});
-
 // Health
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', database: 'mongodb' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// SPA fallback - serve index.html for all non-API routes
+app.get('/{*splat}', (req, res) => {
+  res.sendFile(join(__dirname, '..', 'public', 'index.html'));
 });

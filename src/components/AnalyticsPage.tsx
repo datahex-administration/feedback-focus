@@ -17,7 +17,7 @@ import {
 } from "recharts";
 import { QUESTIONNAIRE_OPTIONS, getQuestionnaire, type QuestionnaireType } from "@/lib/questionnaires";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 const COLORS = ["#22c55e", "#3b82f6", "#f59e0b", "#f97316", "#ef4444"];
 const YESNO_COLORS = ["#22c55e", "#ef4444"];
@@ -149,9 +149,9 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
     sc_food_freshness: t("questionnaire.school_canteen.foodFreshness"),
   };
 
-  const activeCategoryFields = selectedQuestionnaire === "food" ? FOOD_CATEGORY_FIELDS
+  const activeCategoryFields = (selectedQuestionnaire === "food" || selectedQuestionnaire === "food_laundry") ? FOOD_CATEGORY_FIELDS
     : selectedQuestionnaire === "school_canteen" ? SCHOOL_CANTEEN_CATEGORY_FIELDS : [];
-  const activeCategoryLabels = selectedQuestionnaire === "food" ? foodCategoryLabels
+  const activeCategoryLabels = (selectedQuestionnaire === "food" || selectedQuestionnaire === "food_laundry") ? foodCategoryLabels
     : selectedQuestionnaire === "school_canteen" ? schoolCanteenCategoryLabels : {};
 
   /* Stacked bar data for category breakdown (food & school_canteen) */
@@ -277,7 +277,7 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
       {/* Questionnaire Type Tabs */}
       {!restrictTo && (
       <Tabs value={selectedQuestionnaire} onValueChange={(v) => { setSelectedQuestionnaire(v as QuestionnaireType); setSelectedPlaces([]); }}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${QUESTIONNAIRE_OPTIONS.length}, minmax(0, 1fr))` }}>
           {QUESTIONNAIRE_OPTIONS.map(q => (
             <TabsTrigger key={q.value} value={q.value}>{t(q.labelKey)}</TabsTrigger>
           ))}
@@ -379,7 +379,7 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
                 <div className="text-[11px] text-muted-foreground">{t("admin.satisfactionRate")}</div>
               </CardContent>
             </Card>
-            {(selectedQuestionnaire === "food" || selectedQuestionnaire === "school_canteen") && (
+            {(selectedQuestionnaire === "food" || selectedQuestionnaire === "school_canteen" || selectedQuestionnaire === "food_laundry") && (
               <>
                 <Card className="border-blue-200 bg-blue-50/30">
                   <CardContent className="p-4 text-center space-y-1">
@@ -453,7 +453,7 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
           </Card>
 
           {/* ═══ FOOD-SPECIFIC CHARTS ═══ */}
-          {selectedQuestionnaire === "food" && (
+          {(selectedQuestionnaire === "food" || selectedQuestionnaire === "food_laundry") && (
             <>
               {/* Meal Time + Radar */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -633,7 +633,7 @@ const AnalyticsPage = ({ restrictTo }: { restrictTo?: QuestionnaireType }) => {
           )}
 
           {/* ═══ HOUSEKEEPING SPECIFIC CHARTS ═══ */}
-          {selectedQuestionnaire === "housekeeping" && (
+          {(selectedQuestionnaire === "housekeeping" || selectedQuestionnaire === "food_laundry") && (
             <>
               {/* Yes/No Distribution */}
               {yesNoChartData.length > 0 && (

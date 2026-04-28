@@ -1,0 +1,10 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Server-side access only (via Admin SDK) - deny all client-side access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

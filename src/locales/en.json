@@ -36,6 +36,12 @@
       "noIssues": "No Issues",
       "suggestionsPlaceholder": "Any comments or suggestions to improve our housekeeping services..."
     },
+    "food_laundry": {
+      "name": "Food & Laundry Feedback",
+      "welcome": "Food & Laundry Service Feedback",
+      "subtitle": "Help us improve our food and laundry services",
+      "suggestionsPlaceholder": "Any comments or suggestions to improve our food and laundry services..."
+    },
     "school_canteen": {
       "name": "School Canteen Feedback",
       "welcome": "School Canteen Feedback Form",
