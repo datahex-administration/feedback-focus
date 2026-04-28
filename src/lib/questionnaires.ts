@@ -275,6 +275,13 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
         ],
       },
       {
+        id: "food_suggestions",
+        titleKey: "feedback.suggestions",
+        fields: [
+          { id: "food_suggestions", labelKey: "feedback.suggestionsPlaceholder", type: "textarea" },
+        ],
+      },
+      {
         id: "laundry_questions",
         titleKey: "questionnaire.housekeeping.laundrySection",
         fields: [
@@ -314,7 +321,7 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     ],
     suggestionsField: "food_laundry_suggestions",
     pages: [
-      { titleKey: "questionnaire.food_laundry.page1Title", sectionIds: ["meal_time", "food_menu", "service", "overall"] },
+      { titleKey: "questionnaire.food_laundry.page1Title", sectionIds: ["meal_time", "food_menu", "service", "overall", "food_suggestions"] },
       { titleKey: "questionnaire.food_laundry.page2Title", sectionIds: ["laundry_questions", "suggestions"] },
     ],
   },
