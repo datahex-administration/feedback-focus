@@ -40,7 +40,9 @@
       "name": "تقييم الطعام والغسيل",
       "welcome": "تقييم خدمة الطعام والغسيل",
       "subtitle": "ساعدنا في تحسين خدمات الطعام والغسيل",
-      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين خدمات الطعام والغسيل..."
+      "suggestionsPlaceholder": "أي تعليقات أو اقتراحات لتحسين خدمات الطعام والغسيل...",
+      "page1Title": "الطعام",
+      "page2Title": "الغسيل"
     },
     "school_canteen": {
       "name": "تقييم مقصف المدرسة",
@@ -108,7 +110,9 @@
     "suggestions": "اقتراحاتك",
     "suggestionsPlaceholder": "شاركنا أفكارك...",
     "submit": "إرسال التقييم",
-    "submitting": "جاري الإرسال..."
+    "submitting": "جاري الإرسال...",
+    "next": "التالي",
+    "back": "السابق"
   },
   "ratings": {
     "excellent": "ممتاز",

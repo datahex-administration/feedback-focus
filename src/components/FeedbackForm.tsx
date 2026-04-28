@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
-import { Send, Check, ChevronsUpDown } from "lucide-react";
+import { Send, Check, ChevronsUpDown, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -60,6 +60,17 @@ const FeedbackForm = ({
   const [values, setValues] = useState<Record<string, string>>(buildInitialValues);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [schoolSelectOpen, setSchoolSelectOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  const hasPages = !!config.pages && config.pages.length > 1;
+  const totalPages = hasPages ? config.pages!.length : 1;
+
+  /* Get sections for the current page */
+  const getPageSections = (pageIndex: number) => {
+    if (!hasPages) return config.sections;
+    const page = config.pages![pageIndex];
+    return config.sections.filter((s) => page.sectionIds.includes(s.id));
+  };
 
   const handleValueChange = (fieldId: string, value: string) => {
     setValues((prev) => ({ ...prev, [fieldId]: value }));
@@ -71,8 +82,9 @@ const FeedbackForm = ({
     { value: "dinner", label: t("feedback.dinner") },
   ];
 
-  const validateForm = (): boolean => {
-    for (const section of config.sections) {
+  const validateForm = (sectionsToValidate?: typeof config.sections): boolean => {
+    const sections = sectionsToValidate || config.sections;
+    for (const section of sections) {
       for (const field of section.fields) {
         if (field.required && !values[field.id]) {
           if (field.type === "meal_time") {
@@ -87,6 +99,18 @@ const FeedbackForm = ({
       }
     }
     return true;
+  };
+
+  const handleNext = () => {
+    if (validateForm(getPageSections(currentPage))) {
+      setCurrentPage((p) => p + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentPage((p) => p - 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -340,20 +364,76 @@ const FeedbackForm = ({
         <p className="text-muted-foreground text-sm">{t(config.subtitleKey)}</p>
       </div>
 
-      {/* Dynamic Sections */}
-      {config.sections.map((section) => renderSection(section))}
+      {/* Page Indicator */}
+      {hasPages && (
+        <div className="flex items-center justify-center gap-3 pb-2">
+          {config.pages!.map((page, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all",
+                  idx === currentPage
+                    ? "bg-primary text-primary-foreground"
+                    : idx < currentPage
+                    ? "bg-primary/20 text-primary"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {idx < currentPage ? <Check className="w-4 h-4" /> : idx + 1}
+              </div>
+              <span className={cn("text-sm hidden sm:inline", idx === currentPage ? "font-medium text-foreground" : "text-muted-foreground")}>
+                {t(page.titleKey)}
+              </span>
+              {idx < config.pages!.length - 1 && (
+                <div className={cn("w-8 h-0.5 mx-1", idx < currentPage ? "bg-primary/40" : "bg-muted")} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Submit Button */}
-      <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
-        {isSubmitting ? (
-          t("feedback.submitting")
-        ) : (
-          <>
-            <Send className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
-            {t("feedback.submit")}
-          </>
-        )}
-      </Button>
+      {/* Dynamic Sections (current page only) */}
+      {getPageSections(currentPage).map((section) => renderSection(section))}
+
+      {/* Navigation Buttons */}
+      {hasPages ? (
+        <div className="flex gap-3">
+          {currentPage > 0 && (
+            <Button type="button" variant="outline" className="flex-1 h-12 text-base" onClick={handleBack}>
+              <ChevronLeft className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
+              {t("feedback.back", { defaultValue: "Back" })}
+            </Button>
+          )}
+          {currentPage < totalPages - 1 ? (
+            <Button type="button" className="flex-1 h-12 text-base font-medium" onClick={handleNext}>
+              {t("feedback.next", { defaultValue: "Next" })}
+              <ChevronRight className="w-4 h-4 ltr:ml-2 rtl:mr-2" />
+            </Button>
+          ) : (
+            <Button type="submit" className="flex-1 h-12 text-base font-medium" disabled={isSubmitting}>
+              {isSubmitting ? (
+                t("feedback.submitting")
+              ) : (
+                <>
+                  <Send className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
+                  {t("feedback.submit")}
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      ) : (
+        <Button type="submit" className="w-full h-12 text-base font-medium" disabled={isSubmitting}>
+          {isSubmitting ? (
+            t("feedback.submitting")
+          ) : (
+            <>
+              <Send className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
+              {t("feedback.submit")}
+            </>
+          )}
+        </Button>
+      )}
     </form>
   );
 };

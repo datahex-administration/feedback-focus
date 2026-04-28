@@ -27,6 +27,11 @@ export interface QuestionSection {
   fields: QuestionField[];
 }
 
+export interface QuestionnairePage {
+  titleKey: string;
+  sectionIds: string[];
+}
+
 export interface QuestionnaireConfig {
   id: QuestionnaireType;
   nameKey: string;
@@ -40,6 +45,7 @@ export interface QuestionnaireConfig {
   categoryFields?: string[];
   hasMealTime?: boolean;
   hasSchoolSelect?: boolean;
+  pages?: QuestionnairePage[];
 }
 
 /* ── Rating Scales ── */
@@ -307,6 +313,10 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
       "laundry_ironing_folding", "laundry_issues",
     ],
     suggestionsField: "food_laundry_suggestions",
+    pages: [
+      { titleKey: "questionnaire.food_laundry.page1Title", sectionIds: ["meal_time", "food_menu", "service", "overall"] },
+      { titleKey: "questionnaire.food_laundry.page2Title", sectionIds: ["laundry_questions", "suggestions"] },
+    ],
   },
 
   /* ── School Canteen Feedback ── */

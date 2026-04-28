@@ -40,7 +40,9 @@
       "name": "Food & Laundry Feedback",
       "welcome": "Food & Laundry Service Feedback",
       "subtitle": "Help us improve our food and laundry services",
-      "suggestionsPlaceholder": "Any comments or suggestions to improve our food and laundry services..."
+      "suggestionsPlaceholder": "Any comments or suggestions to improve our food and laundry services...",
+      "page1Title": "Food",
+      "page2Title": "Laundry"
     },
     "school_canteen": {
       "name": "School Canteen Feedback",
@@ -108,7 +110,9 @@
     "suggestions": "Your Suggestions",
     "suggestionsPlaceholder": "Share your thoughts with us...",
     "submit": "Submit Feedback",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "next": "Next",
+    "back": "Back"
   },
   "ratings": {
     "excellent": "Excellent",
