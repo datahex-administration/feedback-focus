@@ -245,10 +245,10 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
         titleKey: "feedback.foodMenuRatings",
         descriptionKey: "feedback.selectOne",
         fields: [
-          { id: "food_temperature", labelKey: "feedback.foodTemperature", type: "rating_grid", required: true, showLabel: true },
-          { id: "food_taste", labelKey: "feedback.foodTaste", type: "rating_grid", required: true, showLabel: true },
-          { id: "food_aroma", labelKey: "feedback.foodAroma", type: "rating_grid", required: true, showLabel: true },
-          { id: "menu_variety", labelKey: "feedback.menuVariety", type: "rating_grid", required: true, showLabel: true },
+          { id: "food_temperature", labelKey: "feedback.foodTemperature", type: "rating_grid", showLabel: true },
+          { id: "food_taste", labelKey: "feedback.foodTaste", type: "rating_grid", showLabel: true },
+          { id: "food_aroma", labelKey: "feedback.foodAroma", type: "rating_grid", showLabel: true },
+          { id: "menu_variety", labelKey: "feedback.menuVariety", type: "rating_grid", showLabel: true },
         ],
       },
       {
@@ -256,31 +256,30 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
         titleKey: "feedback.serviceRatings",
         descriptionKey: "feedback.selectOne",
         fields: [
-          { id: "staff_attitude", labelKey: "feedback.staffAttitude", type: "rating_grid", required: true, showLabel: true },
-          { id: "service_time", labelKey: "feedback.serviceTime", type: "rating_grid", required: true, showLabel: true },
-          { id: "cleanliness", labelKey: "feedback.cleanliness", type: "rating_grid", required: true, showLabel: true },
+          { id: "staff_attitude", labelKey: "feedback.staffAttitude", type: "rating_grid", showLabel: true },
+          { id: "service_time", labelKey: "feedback.serviceTime", type: "rating_grid", showLabel: true },
+          { id: "cleanliness", labelKey: "feedback.cleanliness", type: "rating_grid", showLabel: true },
         ],
       },
       {
         id: "overall",
         titleKey: "feedback.overallExperience",
         fields: [
-          { id: "overall_experience", labelKey: "", type: "rating_grid", required: true, showLabel: false },
+          { id: "overall_experience", labelKey: "", type: "rating_grid", showLabel: false },
         ],
       },
       {
         id: "laundry_questions",
         titleKey: "questionnaire.housekeeping.laundrySection",
         fields: [
-          { id: "laundry_properly_cleaned", labelKey: "questionnaire.housekeeping.properlyCleaned", type: "radio", required: true, options: YES_NO },
-          { id: "laundry_returned_on_time", labelKey: "questionnaire.housekeeping.returnedOnTime", type: "radio", required: true, options: YES_NO },
-          { id: "laundry_fresh_no_odor", labelKey: "questionnaire.housekeeping.freshNoOdor", type: "radio", required: true, options: YES_NO },
-          { id: "laundry_ironing_folding", labelKey: "questionnaire.housekeeping.ironingFoldingDone", type: "radio", required: true, options: YES_NO_NA },
+          { id: "laundry_properly_cleaned", labelKey: "questionnaire.housekeeping.properlyCleaned", type: "radio", options: YES_NO },
+          { id: "laundry_returned_on_time", labelKey: "questionnaire.housekeeping.returnedOnTime", type: "radio", options: YES_NO },
+          { id: "laundry_fresh_no_odor", labelKey: "questionnaire.housekeeping.freshNoOdor", type: "radio", options: YES_NO },
+          { id: "laundry_ironing_folding", labelKey: "questionnaire.housekeeping.ironingFoldingDone", type: "radio", options: YES_NO_NA },
           {
             id: "laundry_issues",
             labelKey: "questionnaire.housekeeping.issuesNoticed",
             type: "radio",
-            required: true,
             options: [
               { value: "clothes_damaged", labelKey: "questionnaire.housekeeping.clothesDamaged" },
               { value: "stains_not_removed", labelKey: "questionnaire.housekeeping.stainsNotRemoved" },
