@@ -115,6 +115,8 @@ const FeedbackForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    /* Prevent accidental submission when not on the last page */
+    if (hasPages && currentPage < totalPages - 1) return;
     if (!validateForm()) return;
 
     setIsSubmitting(true);
