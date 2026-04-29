@@ -113,10 +113,8 @@ const FeedbackForm = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    /* Prevent accidental submission when not on the last page */
-    if (hasPages && currentPage < totalPages - 1) return;
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
@@ -356,8 +354,8 @@ const FeedbackForm = ({
     );
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+  const formContent = (
+    <>
       {/* Welcome Header */}
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl font-semibold text-foreground mb-2">
@@ -412,7 +410,7 @@ const FeedbackForm = ({
               <ChevronRight className="w-4 h-4 ltr:ml-2 rtl:mr-2" />
             </Button>
           ) : (
-            <Button type="submit" className="flex-1 h-12 text-base font-medium" disabled={isSubmitting}>
+            <Button type="button" className="flex-1 h-12 text-base font-medium" disabled={isSubmitting} onClick={() => handleSubmit()}>
               {isSubmitting ? (
                 t("feedback.submitting")
               ) : (
@@ -436,6 +434,17 @@ const FeedbackForm = ({
           )}
         </Button>
       )}
+    </>
+  );
+
+  /* Multi-page forms use a div (no implicit form submission possible) */
+  if (hasPages) {
+    return <div className="space-y-6 animate-fade-in">{formContent}</div>;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+      {formContent}
     </form>
   );
 };
