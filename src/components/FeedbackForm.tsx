@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Command,
   CommandEmpty,
@@ -130,6 +131,12 @@ const FeedbackForm = ({
       config.sections.forEach((section) => {
         section.fields.forEach((field) => {
           if (field.type === "textarea") {
+            const v = (values[field.id] || "").trim();
+            payload[field.id] = v || null;
+          } else if (field.type === "phone") {
+            const v = (values[field.id] || "").trim();
+            payload[field.id] = v ? `+973${v}` : null;
+          } else if (field.type === "text") {
             const v = (values[field.id] || "").trim();
             payload[field.id] = v || null;
           } else if (field.type === "school_select") {
@@ -309,6 +316,8 @@ const FeedbackForm = ({
     const textareaFields = section.fields.filter((f) => f.type === "textarea");
     const mealTimeFields = section.fields.filter((f) => f.type === "meal_time");
     const schoolSelectFields = section.fields.filter((f) => f.type === "school_select");
+    const textFields = section.fields.filter((f) => f.type === "text");
+    const phoneFields = section.fields.filter((f) => f.type === "phone");
 
     const hasRequired = section.fields.some((f) => f.required);
 
@@ -323,6 +332,43 @@ const FeedbackForm = ({
           )}
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Text fields (name etc.) */}
+          {textFields.map((field) => (
+            <div key={field.id} className="space-y-2">
+              <Label className="text-sm font-medium">{t(field.labelKey)}</Label>
+              <Input
+                type="text"
+                placeholder={field.placeholderKey ? t(field.placeholderKey) : ""}
+                value={values[field.id] || ""}
+                onChange={(e) => handleValueChange(field.id, e.target.value)}
+              />
+            </div>
+          ))}
+
+          {/* Phone fields (mobile with Bahrain +973) */}
+          {phoneFields.map((field) => (
+            <div key={field.id} className="space-y-2">
+              <Label className="text-sm font-medium">{t(field.labelKey)}</Label>
+              <div className="flex gap-2">
+                <div className="flex items-center gap-1.5 px-3 border rounded-md bg-muted text-sm min-w-[100px] justify-center">
+                  <span>🇧🇭</span>
+                  <span dir="ltr">+973</span>
+                </div>
+                <Input
+                  type="tel"
+                  dir="ltr"
+                  placeholder={field.placeholderKey ? t(field.placeholderKey) : ""}
+                  value={values[field.id] || ""}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9]/g, "").slice(0, 8);
+                    handleValueChange(field.id, v);
+                  }}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          ))}
+
           {/* School select */}
           {schoolSelectFields.map((field) => (
             <div key={field.id}>{renderSchoolSelectField(field)}</div>

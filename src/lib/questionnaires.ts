@@ -14,10 +14,11 @@ export interface FieldOption {
 export interface QuestionField {
   id: string;
   labelKey: string;
-  type: "rating_grid" | "radio" | "textarea" | "meal_time" | "school_select";
+  type: "rating_grid" | "radio" | "textarea" | "meal_time" | "school_select" | "text" | "phone";
   required?: boolean;
   options?: FieldOption[];
   showLabel?: boolean;
+  placeholderKey?: string;
 }
 
 export interface QuestionSection {
@@ -100,6 +101,14 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     hasMealTime: true,
     sections: [
       {
+        id: "personal_info",
+        titleKey: "feedback.personalInfo",
+        fields: [
+          { id: "respondent_name", labelKey: "feedback.name", type: "text", required: true, placeholderKey: "feedback.namePlaceholder" },
+          { id: "respondent_mobile", labelKey: "feedback.mobile", type: "phone", required: true, placeholderKey: "feedback.mobilePlaceholder" },
+        ],
+      },
+      {
         id: "meal_time",
         titleKey: "feedback.mealTime",
         fields: [
@@ -160,6 +169,14 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     ratingScale: FIVE_STAR_RATING_SCALE,
     hasMealTime: false,
     sections: [
+      {
+        id: "personal_info",
+        titleKey: "feedback.personalInfo",
+        fields: [
+          { id: "respondent_name", labelKey: "feedback.name", type: "text", required: true, placeholderKey: "feedback.namePlaceholder" },
+          { id: "respondent_mobile", labelKey: "feedback.mobile", type: "phone", required: true, placeholderKey: "feedback.mobilePlaceholder" },
+        ],
+      },
       {
         id: "overall_rating",
         titleKey: "questionnaire.housekeeping.overallRating",
@@ -239,6 +256,14 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     ratingScale: FOOD_RATING_SCALE,
     hasMealTime: true,
     sections: [
+      {
+        id: "personal_info",
+        titleKey: "feedback.personalInfo",
+        fields: [
+          { id: "respondent_name", labelKey: "feedback.name", type: "text", required: true, placeholderKey: "feedback.namePlaceholder" },
+          { id: "respondent_mobile", labelKey: "feedback.mobile", type: "phone", required: true, placeholderKey: "feedback.mobilePlaceholder" },
+        ],
+      },
       {
         id: "meal_time",
         titleKey: "feedback.mealTime",
@@ -321,7 +346,7 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     ],
     suggestionsField: "food_laundry_suggestions",
     pages: [
-      { titleKey: "questionnaire.food_laundry.page1Title", sectionIds: ["meal_time", "food_menu", "service", "overall", "food_suggestions"] },
+      { titleKey: "questionnaire.food_laundry.page1Title", sectionIds: ["personal_info", "meal_time", "food_menu", "service", "overall", "food_suggestions"] },
       { titleKey: "questionnaire.food_laundry.page2Title", sectionIds: ["laundry_questions", "suggestions"] },
     ],
   },
@@ -336,6 +361,14 @@ export const QUESTIONNAIRES: Record<QuestionnaireType, QuestionnaireConfig> = {
     hasMealTime: false,
     hasSchoolSelect: true,
     sections: [
+      {
+        id: "personal_info",
+        titleKey: "feedback.personalInfo",
+        fields: [
+          { id: "respondent_name", labelKey: "feedback.name", type: "text", required: true, placeholderKey: "feedback.namePlaceholder" },
+          { id: "respondent_mobile", labelKey: "feedback.mobile", type: "phone", required: true, placeholderKey: "feedback.mobilePlaceholder" },
+        ],
+      },
       {
         id: "school_selection",
         titleKey: "questionnaire.school_canteen.selectSchool",
@@ -474,7 +507,7 @@ export const getAllFields = (type: QuestionnaireType): string[] => {
   const fields: string[] = [];
   config.sections.forEach(section => {
     section.fields.forEach(field => {
-      if (field.type !== "textarea" && field.type !== "meal_time" && field.type !== "school_select") {
+      if (field.type !== "textarea" && field.type !== "meal_time" && field.type !== "school_select" && field.type !== "text" && field.type !== "phone") {
         fields.push(field.id);
       }
     });
