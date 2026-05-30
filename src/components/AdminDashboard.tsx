@@ -38,6 +38,7 @@ const PAGE_SIZE = 15;
 interface Feedback {
   _id?: string;
   id?: string;
+  respondent_name?: string | null;
   created_at: string;
   feedback_date: string;
   meal_time: string;
@@ -262,6 +263,7 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
       const qType = f.questionnaire_type || "food";
       const base: Record<string, string> = {
         Date: f.feedback_date,
+        Name: f.respondent_name || "",
         Place: f.place_name || "N/A",
         "Questionnaire": qType,
       };
@@ -517,6 +519,7 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                           <TableRow className="bg-muted/50">
                             <TableHead className="w-[30px] text-center">#</TableHead>
                             <TableHead>{t("admin.date")}</TableHead>
+                            <TableHead>{t("feedback.name")}</TableHead>
                             <TableHead>{t("admin.places")}</TableHead>
                             {(!activeQType || activeQType === "food") && activeQType !== "housekeeping" && (
                               <>
@@ -565,6 +568,9 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                               </TableCell>
                               <TableCell className="whitespace-nowrap text-xs">
                                 {format(new Date(fb.feedback_date), "dd MMM yyyy")}
+                              </TableCell>
+                              <TableCell className="text-xs max-w-[100px] truncate">
+                                {fb.respondent_name || "—"}
                               </TableCell>
                               <TableCell className="text-xs max-w-[100px] truncate">
                                 {fb.place_name || "—"}
@@ -703,6 +709,13 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                     <Badge variant="secondary" className="text-xs">{t(config.nameKey)}</Badge>
                   </DialogTitle>
                 </DialogHeader>
+
+                {detailFeedback.respondent_name && (
+                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3 mt-2">
+                    <span className="text-sm font-medium">{t("feedback.name")}</span>
+                    <span className="text-sm">{detailFeedback.respondent_name}</span>
+                  </div>
+                )}
 
                 <div className="space-y-4 mt-2">
                   {/* Food-specific sections */}

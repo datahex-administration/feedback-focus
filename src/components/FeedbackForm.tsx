@@ -369,6 +369,13 @@ const FeedbackForm = ({
             </div>
           ))}
 
+          {/* Privacy disclaimer – shown when personal info fields are present */}
+          {(textFields.length > 0 || phoneFields.length > 0) && (
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              {t("feedback.privacyDisclaimer")}
+            </p>
+          )}
+
           {/* School select */}
           {schoolSelectFields.map((field) => (
             <div key={field.id}>{renderSchoolSelectField(field)}</div>
