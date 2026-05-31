@@ -39,6 +39,7 @@ interface Feedback {
   _id?: string;
   id?: string;
   respondent_name?: string | null;
+  respondent_mobile?: string | null;
   created_at: string;
   feedback_date: string;
   meal_time: string;
@@ -264,6 +265,7 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
       const base: Record<string, string> = {
         Date: f.feedback_date,
         Name: f.respondent_name || "",
+        Mobile: f.respondent_mobile || "",
         Place: f.place_name || "N/A",
         "Questionnaire": qType,
       };
@@ -520,6 +522,7 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                             <TableHead className="w-[30px] text-center">#</TableHead>
                             <TableHead>{t("admin.date")}</TableHead>
                             <TableHead>{t("feedback.name")}</TableHead>
+                            <TableHead>{t("feedback.mobile")}</TableHead>
                             <TableHead>{t("admin.places")}</TableHead>
                             {(!activeQType || activeQType === "food") && activeQType !== "housekeeping" && (
                               <>
@@ -571,6 +574,9 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                               </TableCell>
                               <TableCell className="text-xs max-w-[100px] truncate">
                                 {fb.respondent_name || "—"}
+                              </TableCell>
+                              <TableCell className="text-xs whitespace-nowrap" dir="ltr">
+                                {fb.respondent_mobile || "—"}
                               </TableCell>
                               <TableCell className="text-xs max-w-[100px] truncate">
                                 {fb.place_name || "—"}
@@ -714,6 +720,13 @@ const AdminDashboard = ({ onLogout, role = "admin" }: AdminDashboardProps) => {
                   <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3 mt-2">
                     <span className="text-sm font-medium">{t("feedback.name")}</span>
                     <span className="text-sm">{detailFeedback.respondent_name}</span>
+                  </div>
+                )}
+
+                {detailFeedback.respondent_mobile && (
+                  <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3 mt-2">
+                    <span className="text-sm font-medium">{t("feedback.mobile")}</span>
+                    <span className="text-sm" dir="ltr">{detailFeedback.respondent_mobile}</span>
                   </div>
                 )}
 
